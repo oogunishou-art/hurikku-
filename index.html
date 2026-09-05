@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#7AC74F">
+<title>やさいをたべてスリムになろう！</title>
+<style>
+:root{
+  --bg-sky:#B5E6FF;--bg-grass:#7AC74F;--cream:#FFF8E7;--carrot:#FF8C42;
+  --tomato:#E74C3C;--leaf:#4CAF50;--eggplant:#8B5A9E;--text:#3A2818;
+  --shadow:rgba(58,40,24,.18);--key-face:#FFF8E7;--key-shadow:#C9B99A;
+  --key-modifier:#FFB347;--key-modifier-shadow:#C77A1F;--heart:#E74C3C;
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;}
+html,body{height:100%;overflow:hidden;font-family:"Hiragino Maru Gothic ProN","M PLUS Rounded 1c","Yu Gothic",sans-serif;color:var(--text);background:linear-gradient(180deg,var(--bg-sky) 0%,var(--bg-sky) 55%,var(--bg-grass) 55%,var(--bg-grass) 100%);touch-action:manipulation;overscroll-behavior:none;}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;padding-bottom:var(--safe-bottom);}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;z-index:10;overflow-y:auto;}
+.screen.hidden{display:none!important;}
+.title-logo{font-size:clamp(22px,6vw,38px);font-weight:900;color:#fff;text-shadow:0 4px 0 var(--eggplant),0 8px 12px rgba(0,0,0,.2);text-align:center;line-height:1.2;margin-bottom:6px;letter-spacing:.02em;}
+.title-sub{font-size:13px;background:var(--cream);padding:4px 12px;border-radius:999px;box-shadow:0 3px 0 var(--key-shadow);margin-bottom:8px;}
+.title-char{width:120px;height:120px;margin-bottom:8px;animation:idleBounce 1.6s ease-in-out infinite;}
+.card{background:var(--cream);border-radius:16px;padding:12px;box-shadow:0 5px 0 var(--key-shadow),0 10px 18px rgba(0,0,0,.15);width:min(360px,92vw);margin-bottom:8px;}
+.card h3{font-size:13px;margin-bottom:7px;color:var(--eggplant);display:flex;align-items:center;gap:5px;}
+.opt-row{display:grid;gap:5px;}
+.opt-row.device{grid-template-columns:1fr 1fr;}
+.opt-row.theme{grid-template-columns:1fr 1fr 1fr;}
+.opt-row.level{grid-template-columns:1fr 1fr 1fr;}
+.opt-btn{background:#fff;border:3px solid var(--key-shadow);border-radius:10px;padding:8px 4px;font-size:12px;font-weight:700;color:var(--text);cursor:pointer;transition:transform .1s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:46px;font-family:inherit;}
+.opt-btn .emoji{font-size:17px;pointer-events:none;}
+.opt-btn *{pointer-events:none;}
+.opt-btn.active{background:var(--carrot);border-color:var(--carrot);color:#fff;box-shadow:0 3px 0 #B8551A;transform:translateY(-1px);}
+.start-btn{background:var(--tomato);color:#fff;border:none;border-radius:999px;padding:13px 32px;font-size:19px;font-weight:900;box-shadow:0 5px 0 #8B2E2E,0 8px 18px rgba(0,0,0,.2);cursor:pointer;letter-spacing:.05em;font-family:inherit;}
+.start-btn:active{transform:translateY(4px);box-shadow:0 1px 0 #8B2E2E;}
+
+/* ===== 体型ゲージ ===== */
+.body-gauge-wrap{padding:3px 12px 2px;display:flex;flex-direction:column;gap:2px;}
+.body-gauge-label{font-size:10px;font-weight:900;color:var(--cream);text-shadow:0 1px 2px rgba(0,0,0,.3);display:flex;justify-content:space-between;align-items:center;}
+.body-gauge-bar{height:16px;background:rgba(255,255,255,.35);border-radius:999px;overflow:hidden;border:2px solid rgba(255,255,255,.6);box-shadow:inset 0 2px 4px rgba(0,0,0,.15);position:relative;}
+.body-gauge-fill{height:100%;border-radius:999px;transition:width .45s cubic-bezier(.34,1.56,.64,1);background:linear-gradient(90deg,#7AC74F,#A8E063);}
+.body-gauge-fill.muscle{background:linear-gradient(90deg,#FF6B35,#FF8C42,#FFD93D);}
+.stage-badge{font-size:10px;background:var(--cream);border-radius:999px;padding:1px 7px;font-weight:900;color:var(--eggplant);}
+
+/* ===== HUD ===== */
+#game-screen{display:flex;flex-direction:column;width:100%;height:100%;}
+.hud{display:flex;align-items:center;justify-content:space-between;padding:5px 12px;gap:8px;}
+.hud-lives{display:flex;gap:4px;}
+.heart{width:24px;height:24px;background:var(--heart);-webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 21s-7-4.5-9.5-9C.7 8.5 3 4 7 4c2 0 3.5 1 5 3 1.5-2 3-3 5-3 4 0 6.3 4.5 4.5 8-2.5 4.5-9.5 9-9.5 9z'/></svg>") center/contain no-repeat;mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 21s-7-4.5-9.5-9C.7 8.5 3 4 7 4c2 0 3.5 1 5 3 1.5-2 3-3 5-3 4 0 6.3 4.5 4.5 8-2.5 4.5-9.5 9-9.5 9z'/></svg>") center/contain no-repeat;filter:drop-shadow(0 2px 0 #8B2E2E);}
+.heart.lost{background:#999;filter:none;opacity:.4;}
+.score-box{background:var(--cream);padding:4px 11px;border-radius:999px;font-weight:900;font-size:14px;box-shadow:0 3px 0 var(--key-shadow);display:flex;align-items:center;gap:5px;}
+.score-box .label{font-size:10px;color:#888;}
+.home-btn{background:var(--cream);border:none;width:34px;height:34px;border-radius:50%;font-size:16px;box-shadow:0 3px 0 var(--key-shadow);cursor:pointer;font-family:inherit;}
+.timer-wrap{padding:0 12px 2px;}
+.timer-bar{height:11px;background:rgba(255,255,255,.5);border-radius:999px;overflow:hidden;box-shadow:inset 0 2px 4px rgba(0,0,0,.15);border:2px solid var(--cream);}
+.timer-fill{height:100%;background:linear-gradient(90deg,#7AC74F,#FFD93D 60%,#E74C3C);transition:width .2s linear;border-radius:999px;}
+
+/* ===== ステージ ===== */
+.stage{flex:1;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:3px 12px 2px;overflow:hidden;}
+.character-area{position:relative;width:100%;max-width:340px;flex:0 0 auto;display:flex;justify-content:center;align-items:center;height:30vh;min-height:150px;max-height:210px;}
+.character{width:100%;height:100%;transition:transform .9s cubic-bezier(.34,1.56,.64,1);transform-origin:center 78%;filter:drop-shadow(0 8px 12px rgba(0,0,0,.18));}
+.character.chomp .mouth-smile{opacity:0;}
+.character.chomp .mouth-open{animation:mouthOpen .55s ease-out;}
+.character.chomp .char-body{animation:bodyBounce .55s ease-out;}
+.mouth-smile{transition:opacity .1s;}
+.character.happy .eyes-open{opacity:0;}
+.character.happy .eyes-happy{opacity:1;}
+.eyes-happy{opacity:0;transition:opacity .12s;}
+.eyes-open{transition:opacity .12s;}
+@keyframes bodyPop{0%{filter:drop-shadow(0 8px 12px rgba(0,0,0,.18)) brightness(1);}30%{filter:drop-shadow(0 10px 20px rgba(255,200,0,.9)) brightness(1.5);}60%{filter:drop-shadow(0 8px 12px rgba(0,0,0,.18)) brightness(1.1);}100%{filter:drop-shadow(0 8px 12px rgba(0,0,0,.18)) brightness(1);}}
+.character.body-change{animation:bodyPop .8s ease-out;}
+@keyframes mouthOpen{0%{rx:2;ry:2;opacity:0;}20%{rx:30;ry:30;opacity:1;}55%{rx:22;ry:16;opacity:1;}100%{rx:2;ry:2;opacity:0;}}
+@keyframes bodyBounce{0%,100%{transform:translateY(0);}30%{transform:translateY(-10px);}60%{transform:translateY(5px);}}
+@keyframes idleBounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
+.veggie-fly{position:absolute;font-size:50px;left:80%;top:20%;pointer-events:none;z-index:5;}
+.veggie-fly.launch{animation:veggieFly .55s cubic-bezier(.5,-.2,.7,.5) forwards;}
+@keyframes veggieFly{0%{left:80%;top:20%;transform:scale(1.4) rotate(0);opacity:1;}70%{left:52%;top:38%;transform:scale(1.1) rotate(360deg);opacity:1;}100%{left:50%;top:44%;transform:scale(.2) rotate(720deg);opacity:0;}}
+.word-area{background:var(--cream);border-radius:18px;padding:9px 16px 11px;box-shadow:0 4px 0 var(--key-shadow),0 10px 18px rgba(0,0,0,.15);width:calc(100% - 8px);max-width:380px;margin-top:auto;margin-bottom:3px;text-align:center;}
+.word-emoji{font-size:28px;display:block;margin-bottom:1px;}
+ruby{font-size:clamp(22px,6.5vw,36px);font-weight:900;line-height:1.1;ruby-align:center;}
+rt{font-size:.42em;color:var(--eggplant);font-weight:700;letter-spacing:.1em;}
+.typed-display{margin-top:4px;font-size:20px;font-weight:900;letter-spacing:.15em;min-height:26px;display:flex;justify-content:center;gap:2px;flex-wrap:wrap;}
+.typed-char{display:inline-block;min-width:20px;padding:0 3px;border-bottom:3px solid var(--key-shadow);color:#ccc;transition:color .1s,border-color .1s;}
+.typed-char.filled{color:var(--leaf);border-color:var(--leaf);}
+.typed-char.wrong{color:var(--tomato);border-color:var(--tomato);animation:shake .3s;}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
+
+/* ===== iPhone キーボード ===== */
+.keyboard{flex:0 0 auto;background:linear-gradient(180deg,#D8CBA8,#B8A87F);padding:4px 4px calc(4px + var(--safe-bottom));display:grid;grid-template-columns:repeat(4,1fr);gap:4px;max-width:500px;width:100%;margin:0 auto;box-shadow:inset 0 3px 4px rgba(0,0,0,.15);}
+.key{background:var(--key-face);border:none;border-radius:9px;height:48px;font-size:20px;font-weight:900;color:var(--text);box-shadow:0 3px 0 var(--key-shadow);cursor:pointer;position:relative;display:flex;align-items:center;justify-content:center;touch-action:none;-webkit-touch-callout:none;font-family:inherit;}
+.key.modifier{background:var(--key-modifier);color:#fff;box-shadow:0 3px 0 var(--key-modifier-shadow);font-size:15px;}
+.key.modifier.small-mod{font-size:12px;}
+.key.modifier.cycle-mod{display:flex;flex-direction:column;justify-content:center;align-items:center;line-height:1;padding:4px 0;gap:1px;background:linear-gradient(180deg,#FFB347,#FF9F2E);}
+.key.modifier.cycle-mod span{font-size:11px;font-weight:900;display:block;}
+.key-spacer{visibility:hidden;pointer-events:none;}
+.key.pressed{transform:translateY(2px);box-shadow:0 1px 0 var(--key-shadow);}
+.key.modifier.pressed{box-shadow:0 1px 0 var(--key-modifier-shadow);}
+
+/* ===== Android キーボード ===== */
+.keyboard-android{flex:0 0 auto;background:linear-gradient(180deg,#3C3C3E,#2C2C2E);padding:0 3px calc(4px + var(--safe-bottom));display:flex;flex-direction:column;gap:0;max-width:500px;width:100%;margin:0 auto;}
+.android-toolbar{background:#2C2C2E;padding:4px 8px;display:flex;gap:5px;align-items:center;border-top:1px solid #3C3C3E;}
+.android-tool-btn{background:#4A4A4C;border:none;border-radius:6px;padding:4px 9px;color:#fff;font-size:11px;font-weight:700;font-family:inherit;cursor:pointer;}
+.android-speed-hint{margin-left:auto;font-size:9px;color:#888;}
+.android-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;padding:3px;}
+.key-android{background:#4A4A4C;border:none;border-radius:8px;height:54px;font-size:14px;font-weight:700;color:#fff;box-shadow:0 3px 0 #1A1A1C;cursor:pointer;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:none;-webkit-touch-callout:none;font-family:inherit;gap:0;padding:2px 0;}
+.key-android .main-kana{font-size:18px;font-weight:900;line-height:1.1;}
+.key-android .sub-nums{font-size:8px;color:#AAA;letter-spacing:.4px;line-height:1.2;}
+.key-android.mod-android{background:#5A3D7A;font-size:12px;}
+.key-android.back-android{background:#5A3D7A;font-size:21px;}
+.key-android.enter-android{background:#2E7D32;font-size:12px;font-weight:900;line-height:1.3;}
+.key-android.spacer-android{background:transparent;box-shadow:none;pointer-events:none;visibility:hidden;}
+.key-android.pressed{transform:translateY(2px);box-shadow:0 1px 0 #1A1A1C;opacity:.85;}
+
+/* ===== フリックポップアップ ===== */
+.flick-popup{position:fixed;pointer-events:none;z-index:100;width:176px;height:176px;display:none;transform:translate(-50%,-50%);}
+.flick-popup.active{display:block;}
+.flick-cell{position:absolute;width:56px;height:56px;background:var(--cream);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:25px;font-weight:900;color:var(--text);box-shadow:0 4px 8px rgba(0,0,0,.25);border:2px solid var(--key-shadow);}
+.flick-cell.c{left:50%;top:50%;transform:translate(-50%,-50%);}
+.flick-cell.u{left:50%;top:0;transform:translateX(-50%);}
+.flick-cell.d{left:50%;bottom:0;transform:translateX(-50%);}
+.flick-cell.l{left:0;top:50%;transform:translateY(-50%);}
+.flick-cell.r{right:0;top:50%;transform:translateY(-50%);}
+.flick-cell.highlight{background:var(--carrot);color:#fff;border-color:var(--carrot);transform:translate(-50%,-50%) scale(1.15);}
+.flick-cell.u.highlight,.flick-cell.d.highlight{transform:translateX(-50%) scale(1.15);}
+.flick-cell.l.highlight,.flick-cell.r.highlight{transform:translateY(-50%) scale(1.15);}
+.flick-cell.empty{opacity:0;}
+
+/* ===== エフェクト ===== */
+.fx-flash{position:fixed;inset:0;background:radial-gradient(circle,rgba(255,220,100,.7),transparent 60%);pointer-events:none;z-index:20;opacity:0;}
+.fx-flash.active{animation:flash .4s ease-out;}
+@keyframes flash{0%{opacity:0;}30%{opacity:1;}100%{opacity:0;}}
+.fx-text{position:fixed;top:35%;left:50%;transform:translate(-50%,-50%) scale(0);font-size:58px;font-weight:900;color:#fff;text-shadow:0 4px 0 var(--tomato),0 6px 12px rgba(0,0,0,.4);pointer-events:none;z-index:30;white-space:nowrap;font-style:italic;letter-spacing:.03em;}
+.fx-text.pop{animation:pop .9s ease-out forwards;}
+@keyframes pop{0%{transform:translate(-50%,-50%) scale(0) rotate(-20deg);opacity:0;}30%{transform:translate(-50%,-50%) scale(1.3) rotate(-8deg);opacity:1;}50%{transform:translate(-50%,-50%) scale(1) rotate(-8deg);}100%{transform:translate(-50%,-70%) scale(1.1) rotate(-8deg);opacity:0;}}
+.confetti{position:fixed;top:0;width:10px;height:14px;pointer-events:none;z-index:25;}
+
+/* ===== 結果 ===== */
+.over-title{font-size:38px;font-weight:900;color:#fff;text-shadow:0 5px 0 var(--eggplant),0 10px 15px rgba(0,0,0,.3);margin-bottom:8px;text-align:center;}
+.stat-row{display:flex;justify-content:space-between;padding:7px 4px;font-size:15px;font-weight:700;border-bottom:2px dashed var(--key-shadow);}
+.stat-row:last-child{border-bottom:none;}
+.stat-row .val{color:var(--carrot);}
+.btn-row{display:flex;gap:10px;margin-top:8px;}
+.sec-btn{background:var(--cream);border:3px solid var(--eggplant);color:var(--eggplant);border-radius:999px;padding:9px 16px;font-size:13px;font-weight:900;box-shadow:0 4px 0 var(--eggplant);cursor:pointer;font-family:inherit;}
+.sec-btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--eggplant);}
+input.name-input{font-family:inherit;font-size:21px;font-weight:900;padding:10px 13px;border:3px solid var(--eggplant);border-radius:11px;text-align:center;width:100%;max-width:250px;background:#fff;color:var(--text);letter-spacing:.15em;-webkit-user-select:text;user-select:text;outline:none;}
+input.name-input:focus{border-color:var(--carrot);box-shadow:0 0 0 4px rgba(255,140,66,.2);}
+.rank-tabs{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;width:min(360px,92vw);}
+.rank-tab{background:#fff;border:2px solid var(--key-shadow);color:var(--text);border-radius:999px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;}
+.rank-tab.active{background:var(--eggplant);color:#fff;border-color:var(--eggplant);}
+.ranking-list{background:var(--cream);border-radius:16px;padding:9px;width:min(360px,92vw);max-height:50vh;overflow-y:auto;box-shadow:0 4px 0 var(--key-shadow),0 10px 18px rgba(0,0,0,.15);-webkit-user-select:auto;user-select:auto;}
+.rank-row{display:grid;grid-template-columns:34px 1fr auto;gap:7px;padding:7px 5px;border-bottom:2px dashed var(--key-shadow);align-items:center;}
+.rank-row:last-child{border-bottom:none;}
+.rank-row.highlight{background:#FFF4C4;border-radius:8px;box-shadow:inset 0 0 0 2px var(--carrot);animation:rankFlash 1s ease-in-out;}
+@keyframes rankFlash{0%,100%{background:#FFF4C4;}50%{background:#FFE87C;}}
+.rank-medal{font-size:19px;text-align:center;font-weight:900;}
+.rank-name-block{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.rank-name{font-size:14px;font-weight:900;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rank-meta{font-size:9px;color:#888;}
+.rank-score{font-size:16px;font-weight:900;color:var(--carrot);text-align:right;}
+.rank-score .unit{font-size:9px;color:#888;margin-left:2px;}
+.empty-rank{text-align:center;padding:24px 18px;color:#888;font-size:13px;line-height:1.8;}
+@media(max-height:660px){.title-char{width:90px;height:90px;}.character-area{height:26vh;min-height:130px;}.key{height:42px;}.key-android{height:48px;}}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ======== タイトル画面 ======== -->
+<div id="title-screen" class="screen">
+  <div class="title-logo">やさいをたべて<br>スリムになろう！</div>
+  <div class="title-sub">🥕 フリックにゅうりょくゲーム 🥦</div>
+  <svg class="title-char" viewBox="-130 -160 260 320">
+    <defs>
+      <radialGradient id="skinT" cx="35%" cy="35%" r="70%"><stop offset="0%" stop-color="#FFE4C4"/><stop offset="100%" stop-color="#F5C29A"/></radialGradient>
+      <radialGradient id="cheekT" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#FF8FA6" stop-opacity="1"/><stop offset="100%" stop-color="#FF8FA6" stop-opacity="0"/></radialGradient>
+    </defs>
+    <ellipse cx="0" cy="148" rx="80" ry="9" fill="rgba(0,0,0,.18)"/>
+    <g>
+      <ellipse cx="-32" cy="128" rx="17" ry="24" fill="url(#skinT)"/>
+      <ellipse cx="32" cy="128" rx="17" ry="24" fill="url(#skinT)"/>
+      <path d="M -50 138 Q -52 156 -38 158 L -14 158 Q -14 148 -22 145 L -48 138 Z" fill="#E74C3C"/>
+      <path d="M 50 138 Q 52 156 38 158 L 14 158 Q 14 148 22 145 L 48 138 Z" fill="#E74C3C"/>
+      <ellipse cx="-32" cy="152" rx="22" ry="4" fill="#FFF"/>
+      <ellipse cx="32" cy="152" rx="22" ry="4" fill="#FFF"/>
+      <path d="M -56 92 Q -62 122 -50 138 L -14 138 L -8 118 L 8 118 L 14 138 L 50 138 Q 62 122 56 92 Z" fill="#2E5AAB"/>
+      <line x1="0" y1="118" x2="0" y2="138" stroke="#1E3E77" stroke-width="2"/>
+      <ellipse cx="0" cy="42" rx="82" ry="72" fill="url(#skinT)"/>
+      <ellipse cx="-88" cy="8" rx="17" ry="38" fill="url(#skinT)" transform="rotate(-12 -88 8)"/>
+      <ellipse cx="88" cy="8" rx="17" ry="38" fill="url(#skinT)" transform="rotate(12 88 8)"/>
+      <circle cx="-96" cy="44" r="15" fill="url(#skinT)"/>
+      <circle cx="96" cy="44" r="15" fill="url(#skinT)"/>
+      <path d="M -72 28 Q -78 -22 -50 -30 L -38 -30 Q -34 -20 0 -18 Q 34 -20 38 -30 L 50 -30 Q 78 -22 72 28 L 80 102 Q 40 110 0 108 Q -40 110 -80 102 Z" fill="#4ECDC4"/>
+      <path d="M 0 45 L 8 66 L 30 66 L 12 79 L 20 100 L 0 87 L -20 100 L -12 79 L -30 66 L -8 66 Z" fill="#FFD93D"/>
+      <path d="M -18 -35 Q -20 -25 -18 -18 L 18 -18 Q 20 -25 18 -35 Z" fill="url(#skinT)"/>
+      <circle cx="0" cy="-82" r="68" fill="url(#skinT)"/>
+      <ellipse cx="0" cy="-28" rx="30" ry="8" fill="url(#skinT)"/>
+      <path d="M -68 -95 Q -75 -148 -30 -155 Q -10 -162 10 -162 Q 30 -155 68 -148 Q 75 -95 66 -78 Q 44 -118 20 -110 Q 0 -115 -20 -110 Q -44 -118 -66 -78 Z" fill="#3A2818"/>
+      <path d="M -36 -128 Q -20 -145 0 -140 Q 20 -145 36 -128 Q 20 -122 0 -126 Q -20 -122 -36 -128 Z" fill="#4A382E"/>
+      <ellipse cx="-44" cy="-70" rx="17" ry="13" fill="url(#cheekT)"/>
+      <ellipse cx="44" cy="-70" rx="17" ry="13" fill="url(#cheekT)"/>
+      <path d="M -36 -100 Q -22 -108 -10 -100" stroke="#3A2818" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+      <path d="M 10 -100 Q 22 -108 36 -100" stroke="#3A2818" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+      <ellipse cx="-22" cy="-82" rx="10" ry="13" fill="#FFF"/>
+      <ellipse cx="22" cy="-82" rx="10" ry="13" fill="#FFF"/>
+      <ellipse cx="-20" cy="-80" rx="7" ry="10" fill="#3A2818"/>
+      <ellipse cx="24" cy="-80" rx="7" ry="10" fill="#3A2818"/>
+      <circle cx="-18" cy="-84" r="3" fill="#FFF"/>
+      <circle cx="26" cy="-84" r="3" fill="#FFF"/>
+      <ellipse cx="0" cy="-55" rx="3.5" ry="2.5" fill="#D0906B"/>
+      <path d="M -13 -40 Q 0 -30 13 -40" stroke="#8B2E2E" stroke-width="4" stroke-linecap="round" fill="none"/>
+    </g>
+  </svg>
+  <div class="card">
+    <h3>📱 にゅうりょくほうほう</h3>
+    <div class="opt-row device" id="device-select">
+      <button class="opt-btn active" data-device="iphone"><span class="emoji">🍎</span><span>iPhone</span><span style="font-size:9px;font-weight:400">フリック入力</span></button>
+      <button class="opt-btn" data-device="android"><span class="emoji">🤖</span><span>Android</span><span style="font-size:9px;font-weight:400">Gboard式</span></button>
+    </div>
+  </div>
+  <div class="card">
+    <h3>🎯 テーマをえらぼう</h3>
+    <div class="opt-row theme" id="theme-select">
+      <button class="opt-btn active" data-theme="やさい"><span class="emoji">🥕</span>やさい</button>
+      <button class="opt-btn" data-theme="くだもの"><span class="emoji">🍎</span>くだもの</button>
+      <button class="opt-btn" data-theme="どうぶつ"><span class="emoji">🐰</span>どうぶつ</button>
+      <button class="opt-btn" data-theme="たべもの"><span class="emoji">🍜</span>たべもの</button>
+      <button class="opt-btn" data-theme="バスケ"><span class="emoji">🏀</span>バスケ</button>
+      <button class="opt-btn" data-theme="なまえ"><span class="emoji">👦</span>なまえ</button>
+    </div>
+  </div>
+  <div class="card">
+    <h3>⭐ むずかしさをえらぼう</h3>
+    <div class="opt-row level" id="level-select">
+      <button class="opt-btn active" data-level="初級">しょきゅう<br><span style="font-size:9px;font-weight:400">小学生低学年</span></button>
+      <button class="opt-btn" data-level="中級">ちゅうきゅう<br><span style="font-size:9px;font-weight:400">小学生高学年</span></button>
+      <button class="opt-btn" data-level="上級">じょうきゅう<br><span style="font-size:9px;font-weight:400">大人向け</span></button>
+    </div>
+  </div>
+  <button class="start-btn" id="start-btn">スタート！</button>
+  <button class="sec-btn" id="ranking-btn" style="margin-top:8px;">🏆 ランキング</button>
+</div>
+
+<!-- ======== ゲーム画面 ======== -->
+<div id="game-screen" class="screen hidden">
+  <div class="hud">
+    <button class="home-btn" id="home-btn">🏠</button>
+    <div class="hud-lives" id="lives"></div>
+    <div class="score-box"><span class="label">スコア</span><span id="score">0</span></div>
+  </div>
+  <div class="timer-wrap"><div class="timer-bar"><div class="timer-fill" id="timer-fill"></div></div></div>
+  <div class="body-gauge-wrap">
+    <div class="body-gauge-label">
+      <span id="gauge-icon">😊</span>
+      <span class="stage-badge" id="stage-badge">スタート</span>
+      <span id="gauge-count" style="font-size:10px;color:var(--cream);font-weight:900;">0こ</span>
+    </div>
+    <div class="body-gauge-bar"><div class="body-gauge-fill" id="body-gauge-fill" style="width:0%"></div></div>
+  </div>
+  <div class="stage">
+    <div class="character-area">
+      <svg class="character" id="character" viewBox="-130 -160 260 320" style="transform:scale(1.05,1)">
+        <defs>
+          <radialGradient id="skinG" cx="35%" cy="35%" r="70%"><stop offset="0%" stop-color="#FFE4C4"/><stop offset="100%" stop-color="#F5C29A"/></radialGradient>
+          <radialGradient id="cheekG" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#FF8FA6" stop-opacity="1"/><stop offset="100%" stop-color="#FF8FA6" stop-opacity="0"/></radialGradient>
+        </defs>
+        <ellipse cx="0" cy="148" rx="80" ry="9" fill="rgba(0,0,0,.18)"/>
+        <g class="char-body">
+          <ellipse cx="-32" cy="128" rx="17" ry="24" fill="url(#skinG)"/>
+          <ellipse cx="32" cy="128" rx="17" ry="24" fill="url(#skinG)"/>
+          <path d="M -50 138 Q -52 156 -38 158 L -14 158 Q -14 148 -22 145 L -48 138 Z" fill="#E74C3C"/>
+          <path d="M 50 138 Q 52 156 38 158 L 14 158 Q 14 148 22 145 L 48 138 Z" fill="#E74C3C"/>
+          <ellipse cx="-32" cy="152" rx="22" ry="4" fill="#FFF"/>
+          <ellipse cx="32" cy="152" rx="22" ry="4" fill="#FFF"/>
+          <path d="M -56 92 Q -62 122 -50 138 L -14 138 L -8 118 L 8 118 L 14 138 L 50 138 Q 62 122 56 92 Z" fill="#2E5AAB"/>
+          <line x1="0" y1="118" x2="0" y2="138" stroke="#1E3E77" stroke-width="2"/>
+          <!-- 胴体 -->
+          <ellipse cx="0" cy="42" rx="82" ry="72" fill="url(#skinG)"/>
+          <!-- 通常の腕 -->
+          <g class="normal-arms">
+            <ellipse cx="-88" cy="8" rx="17" ry="38" fill="url(#skinG)" transform="rotate(-12 -88 8)"/>
+            <ellipse cx="88" cy="8" rx="17" ry="38" fill="url(#skinG)" transform="rotate(12 88 8)"/>
+            <circle cx="-96" cy="44" r="15" fill="url(#skinG)"/>
+            <circle cx="96" cy="44" r="15" fill="url(#skinG)"/>
+          </g>
+          <!-- 筋肉腕（ステージ10+で表示） -->
+          <g class="muscle-arms" style="opacity:0;transition:opacity 0.6s ease">
+            <ellipse cx="-92" cy="5" rx="22" ry="44" fill="url(#skinG)" transform="rotate(-18 -92 5)"/>
+            <ellipse cx="92" cy="5" rx="22" ry="44" fill="url(#skinG)" transform="rotate(18 92 5)"/>
+            <circle cx="-104" cy="40" r="20" fill="url(#skinG)"/>
+            <circle cx="104" cy="40" r="20" fill="url(#skinG)"/>
+            <!-- 筋肉の筋 -->
+            <path d="M -104 28 Q -110 40 -104 52" stroke="#D0906B" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.5"/>
+            <path d="M 104 28 Q 110 40 104 52" stroke="#D0906B" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.5"/>
+          </g>
+          <path d="M -72 28 Q -78 -22 -50 -30 L -38 -30 Q -34 -20 0 -18 Q 34 -20 38 -30 L 50 -30 Q 78 -22 72 28 L 80 102 Q 40 110 0 108 Q -40 110 -80 102 Z" fill="#4ECDC4"/>
+          <path d="M 0 45 L 8 66 L 30 66 L 12 79 L 20 100 L 0 87 L -20 100 L -12 79 L -30 66 L -8 66 Z" fill="#FFD93D"/>
+          <path d="M -18 -35 Q -20 -25 -18 -18 L 18 -18 Q 20 -25 18 -35 Z" fill="url(#skinG)"/>
+          <circle cx="0" cy="-82" r="68" fill="url(#skinG)"/>
+          <ellipse cx="0" cy="-28" rx="30" ry="8" fill="url(#skinG)"/>
+          <path d="M -68 -95 Q -75 -148 -30 -155 Q -10 -162 10 -162 Q 30 -155 68 -148 Q 75 -95 66 -78 Q 44 -118 20 -110 Q 0 -115 -20 -110 Q -44 -118 -66 -78 Z" fill="#3A2818"/>
+          <path d="M -36 -128 Q -20 -145 0 -140 Q 20 -145 36 -128 Q 20 -122 0 -126 Q -20 -122 -36 -128 Z" fill="#4A382E"/>
+          <ellipse cx="-44" cy="-70" rx="17" ry="13" fill="url(#cheekG)"/>
+          <ellipse cx="44" cy="-70" rx="17" ry="13" fill="url(#cheekG)"/>
+          <path d="M -36 -100 Q -22 -108 -10 -100" stroke="#3A2818" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+          <path d="M 10 -100 Q 22 -108 36 -100" stroke="#3A2818" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+          <!-- 通常の目 -->
+          <g class="eyes-open">
+            <ellipse cx="-22" cy="-82" rx="10" ry="13" fill="#FFF"/>
+            <ellipse cx="22" cy="-82" rx="10" ry="13" fill="#FFF"/>
+            <ellipse cx="-20" cy="-80" rx="7" ry="10" fill="#3A2818"/>
+            <ellipse cx="24" cy="-80" rx="7" ry="10" fill="#3A2818"/>
+            <circle cx="-18" cy="-84" r="3" fill="#FFF"/>
+            <circle cx="26" cy="-84" r="3" fill="#FFF"/>
+            <circle cx="-22" cy="-76" r="1.5" fill="#FFF"/>
+            <circle cx="22" cy="-76" r="1.5" fill="#FFF"/>
+          </g>
+          <!-- 幸せ目 -->
+          <g class="eyes-happy">
+            <path d="M -33 -80 Q -22 -95 -11 -80" stroke="#3A2818" stroke-width="5" stroke-linecap="round" fill="none"/>
+            <path d="M 11 -80 Q 22 -95 33 -80" stroke="#3A2818" stroke-width="5" stroke-linecap="round" fill="none"/>
+          </g>
+          <!-- クール目（筋肉ステージ用） -->
+          <g class="eyes-cool" style="opacity:0;transition:opacity 0.5s">
+            <path d="M -33 -84 L -11 -84" stroke="#3A2818" stroke-width="6" stroke-linecap="round" fill="none"/>
+            <path d="M 11 -84 L 33 -84" stroke="#3A2818" stroke-width="6" stroke-linecap="round" fill="none"/>
+          </g>
+          <ellipse cx="0" cy="-55" rx="3.5" ry="2.5" fill="#D0906B"/>
+          <path class="mouth-smile" d="M -13 -40 Q 0 -30 13 -40" stroke="#8B2E2E" stroke-width="4" stroke-linecap="round" fill="none"/>
+          <path class="mouth-cool" d="M -10 -37 Q 0 -41 10 -37" stroke="#8B2E2E" stroke-width="4" stroke-linecap="round" fill="none" style="opacity:0;transition:opacity 0.5s"/>
+          <ellipse class="mouth-open mouth" cx="0" cy="-36" rx="2" ry="2" fill="#5A1F1F" opacity="0"/>
+        </g>
+      </svg>
+      <div class="veggie-fly" id="veggie-fly">🥕</div>
+    </div>
+    <div class="word-area">
+      <span class="word-emoji" id="word-emoji">🥕</span>
+      <div id="word-display"></div>
+      <div class="typed-display" id="typed-display"></div>
+    </div>
+  </div>
+
+  <!-- iPhone式キーボード -->
+  <div class="keyboard" id="keyboard-iphone">
+    <button class="key" data-flick="a">あ</button>
+    <button class="key" data-flick="ka">か</button>
+    <button class="key" data-flick="sa">さ</button>
+    <button class="key modifier" data-mod="back">⌫</button>
+    <button class="key" data-flick="ta">た</button>
+    <button class="key" data-flick="na">な</button>
+    <button class="key" data-flick="ha">は</button>
+    <button class="key modifier small-mod" data-mod="clear">クリア</button>
+    <button class="key" data-flick="ma">ま</button>
+    <button class="key" data-flick="ya">や</button>
+    <button class="key" data-flick="ra">ら</button>
+    <button class="key modifier small-mod" data-mod="bar">ー</button>
+    <button class="key modifier cycle-mod" data-mod="cycle"><span>゛</span><span>小</span><span>゜</span></button>
+    <button class="key" data-flick="wa">わ</button>
+    <div class="key-spacer"></div>
+    <div class="key-spacer"></div>
+  </div>
+
+  <!-- Android（Gboard）式キーボード -->
+  <div class="keyboard-android hidden" id="keyboard-android">
+    <div class="android-toolbar">
+      <button class="android-tool-btn" data-mod="clear">クリア</button>
+      <button class="android-tool-btn" data-mod="bar">ー</button>
+      <button class="android-tool-btn" data-mod="cycle">゛゜小</button>
+      <span class="android-speed-hint" id="speed-hint">⚡フリックで速く入力できます</span>
+    </div>
+    <div class="android-grid">
+      <button class="key-android" data-flick="a"><span class="main-kana">あ</span><span class="sub-nums">1　.@</span></button>
+      <button class="key-android" data-flick="ka"><span class="main-kana">か</span><span class="sub-nums">2　ABC</span></button>
+      <button class="key-android" data-flick="sa"><span class="main-kana">さ</span><span class="sub-nums">3　DEF</span></button>
+      <button class="key-android back-android" data-mod="back">⌫</button>
+      <button class="key-android" data-flick="ta"><span class="main-kana">た</span><span class="sub-nums">4　GHI</span></button>
+      <button class="key-android" data-flick="na"><span class="main-kana">な</span><span class="sub-nums">5　JKL</span></button>
+      <button class="key-android" data-flick="ha"><span class="main-kana">は</span><span class="sub-nums">6　MNO</span></button>
+      <button class="key-android mod-android" data-mod="right-dummy" style="font-size:18px;">→</button>
+      <button class="key-android" data-flick="ma"><span class="main-kana">ま</span><span class="sub-nums">7　PQRS</span></button>
+      <button class="key-android" data-flick="ya"><span class="main-kana">や</span><span class="sub-nums">8　TUV</span></button>
+      <button class="key-android" data-flick="ra"><span class="main-kana">ら</span><span class="sub-nums">9　WXYZ</span></button>
+      <button class="key-android mod-android" data-mod="cycle" style="font-size:12px;line-height:1.3;">小<br>゛゜</button>
+      <button class="key-android mod-android" data-mod="cycle" style="font-size:13px;line-height:1.2;">゛<br>゜</button>
+      <button class="key-android" data-flick="wa"><span class="main-kana">わ</span><span class="sub-nums">0　_</span></button>
+      <button class="key-android mod-android" style="font-size:10px;line-height:1.3;">、。<br>?!</button>
+      <button class="key-android enter-android" data-mod="enter">確定<br>↵</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======== 結果画面 ======== -->
+<div id="gameover-screen" class="screen hidden">
+  <div class="over-title" id="gameover-title">またちょうせん！</div>
+  <svg class="title-char" viewBox="-130 -160 260 320" id="gameover-char"></svg>
+  <div class="card">
+    <div class="stat-row"><span>たべたもの</span><span class="val" id="stat-eaten">0こ</span></div>
+    <div class="stat-row"><span>スコア</span><span class="val" id="stat-score">0</span></div>
+    <div class="stat-row"><span>さいこうれんぞく</span><span class="val" id="stat-combo">0</span></div>
+    <div class="stat-row"><span>たいけい</span><span class="val" id="stat-stage">-</span></div>
+  </div>
+  <button class="start-btn" id="save-record-nav-btn" style="margin:7px 0 5px;font-size:15px;padding:11px 26px;">🏆 きろくする</button>
+  <div class="btn-row">
+    <button class="sec-btn" id="retry-btn">もういちど</button>
+    <button class="sec-btn" id="totitle-btn">タイトル</button>
+  </div>
+</div>
+
+<!-- ======== 名前入力画面 ======== -->
+<div id="name-input-screen" class="screen hidden">
+  <div class="over-title">きろくを のこそう！</div>
+  <div class="card" style="text-align:center;">
+    <div style="font-size:19px;font-weight:900;margin-bottom:5px;"><span id="ni-eaten">0</span>こ たべた!</div>
+    <div style="font-size:14px;color:var(--eggplant);margin-bottom:9px;">スコア <span id="ni-score" style="color:var(--carrot);font-weight:900;">0</span>pt</div>
+    <div style="font-size:12px;color:#888;margin-bottom:11px;" id="ni-meta"></div>
+    <div style="font-size:13px;margin-bottom:5px;">おなまえ（8もじまで）</div>
+    <input type="text" class="name-input" id="name-input" maxlength="8" placeholder="なまえを いれてね" autocomplete="off">
+  </div>
+  <button class="start-btn" id="save-record-btn">きろくする！</button>
+  <button class="sec-btn" id="skip-record-btn" style="margin-top:9px;">やめる</button>
+</div>
+
+<!-- ======== ランキング画面 ======== -->
+<div id="ranking-screen" class="screen hidden">
+  <div class="over-title">🏆 ランキング</div>
+  <div class="rank-tabs" id="rank-tabs">
+    <button class="rank-tab active" data-filter="all">ぜんぶ</button>
+    <button class="rank-tab" data-filter="やさい">やさい</button>
+    <button class="rank-tab" data-filter="くだもの">くだもの</button>
+    <button class="rank-tab" data-filter="どうぶつ">どうぶつ</button>
+    <button class="rank-tab" data-filter="たべもの">たべもの</button>
+    <button class="rank-tab" data-filter="バスケ">バスケ</button>
+    <button class="rank-tab" data-filter="なまえ">なまえ</button>
+  </div>
+  <div class="ranking-list" id="ranking-list"></div>
+  <button class="sec-btn" id="ranking-back-btn" style="margin-top:10px;">⬅ タイトルへ</button>
+</div>
+
+<div class="flick-popup" id="flick-popup"></div>
+<div class="fx-flash" id="fx-flash"></div>
+</div>
+
+<script>
+'use strict';
+const WORDS={
+やさい:{
+初級:[
+{text:'茄子',reading:'なす',emoji:'🍆'},{text:'ねぎ',reading:'ねぎ',emoji:'🌱'},
+{text:'豆',reading:'まめ',emoji:'🫘'},{text:'芋',reading:'いも',emoji:'🥔'},
+{text:'瓜',reading:'うり',emoji:'🥒'},{text:'紫蘇',reading:'しそ',emoji:'🌿'},
+{text:'胡麻',reading:'ごま',emoji:'🌰'},{text:'かぶ',reading:'かぶ',emoji:'🌱'},
+{text:'葉',reading:'は',emoji:'🍃'},{text:'芽',reading:'め',emoji:'🌱'},
+{text:'種',reading:'たね',emoji:'🌰'},{text:'畑',reading:'はたけ',emoji:'🌾'},
+{text:'緑',reading:'みどり',emoji:'🥬'},{text:'赤',reading:'あか',emoji:'🍅'},
+{text:'白',reading:'しろ',emoji:'⬜'},{text:'黄色',reading:'きいろ',emoji:'🌽'},
+{text:'丸い',reading:'まるい',emoji:'🫑'},{text:'長い',reading:'ながい',emoji:'🥕'},
+{text:'甘い',reading:'あまい',emoji:'🍠'},{text:'辛い',reading:'からい',emoji:'🌶'},
+{text:'旨い',reading:'うまい',emoji:'🥕'},{text:'野菜',reading:'やさい',emoji:'🥕'},
+{text:'農家',reading:'のうか',emoji:'🌾'},{text:'収穫',reading:'しゅうかく',emoji:'🌾'},
+{text:'栄養',reading:'えいよう',emoji:'💪'},{text:'健康',reading:'けんこう',emoji:'💚'},
+{text:'料理',reading:'りょうり',emoji:'🍳'},{text:'サラダ',reading:'さらだ',emoji:'🥗'},
+{text:'スープ',reading:'すーぷ',emoji:'🍲'},{text:'食べる',reading:'たべる',emoji:'😋'},
+{text:'作る',reading:'つくる',emoji:'👨‍🍳'},{text:'育てる',reading:'そだてる',emoji:'🌱'},
+{text:'新鮮',reading:'しんせん',emoji:'🥦'},{text:'水やり',reading:'みずやり',emoji:'💧'},
+{text:'肥料',reading:'ひりょう',emoji:'🌱'},{text:'花',reading:'はな',emoji:'🌸'},
+{text:'根',reading:'ね',emoji:'🌱'},{text:'実',reading:'み',emoji:'🫑'},
+{text:'太い',reading:'ふとい',emoji:'🥦'},{text:'細い',reading:'ほそい',emoji:'🌿'},
+{text:'苦い',reading:'にがい',emoji:'🫑'},{text:'固い',reading:'かたい',emoji:'🥬'},
+{text:'炒める',reading:'いためる',emoji:'🍳'},{text:'茹でる',reading:'ゆでる',emoji:'🫕'},
+{text:'蒸す',reading:'むす',emoji:'🫕'},{text:'飲む',reading:'のむ',emoji:'🥤'},
+{text:'旬',reading:'しゅん',emoji:'🌾'},{text:'地元',reading:'じもと',emoji:'🗾'},
+{text:'有機',reading:'ゆうき',emoji:'🌿'},{text:'自然',reading:'しぜん',emoji:'🌳'}
+],
+中級:[
+{text:'トマト',reading:'とまと',emoji:'🍅'},{text:'大根',reading:'だいこん',emoji:'🥬'},
+{text:'牛蒡',reading:'ごぼう',emoji:'🌾'},{text:'南瓜',reading:'かぼちゃ',emoji:'🎃'},
+{text:'白菜',reading:'はくさい',emoji:'🥬'},{text:'蓮根',reading:'れんこん',emoji:'🪷'},
+{text:'生姜',reading:'しょうが',emoji:'🌱'},{text:'ピーマン',reading:'ぴーまん',emoji:'🫑'},
+{text:'きゅうり',reading:'きゅうり',emoji:'🥒'},{text:'玉葱',reading:'たまねぎ',emoji:'🧅'},
+{text:'椎茸',reading:'しいたけ',emoji:'🍄'},{text:'舞茸',reading:'まいたけ',emoji:'🍄'},
+{text:'エリンギ',reading:'えりんぎ',emoji:'🍄'},{text:'小松菜',reading:'こまつな',emoji:'🥬'},
+{text:'水菜',reading:'みずな',emoji:'🥬'},{text:'春菊',reading:'しゅんぎく',emoji:'🌿'},
+{text:'山葵',reading:'わさび',emoji:'🌿'},{text:'唐辛子',reading:'とうがらし',emoji:'🌶'},
+{text:'セロリ',reading:'せろり',emoji:'🌿'},{text:'パセリ',reading:'ぱせり',emoji:'🌿'},
+{text:'バジル',reading:'ばじる',emoji:'🌿'},{text:'オクラ',reading:'おくら',emoji:'🌿'},
+{text:'里芋',reading:'さといも',emoji:'🥔'},{text:'山芋',reading:'やまいも',emoji:'🥔'},
+{text:'人参',reading:'にんじん',emoji:'🥕'},{text:'枝豆',reading:'えだまめ',emoji:'🫘'},
+{text:'空豆',reading:'そらまめ',emoji:'🫘'},{text:'絹さや',reading:'きぬさや',emoji:'🫛'},
+{text:'ニラ',reading:'にら',emoji:'🌿'},{text:'長葱',reading:'ながねぎ',emoji:'🌱'},
+{text:'ニンニク',reading:'にんにく',emoji:'🧄'},{text:'ラッキョウ',reading:'らっきょう',emoji:'🧅'},
+{text:'豆苗',reading:'とうみょう',emoji:'🌱'},{text:'野沢菜',reading:'のざわな',emoji:'🥬'},
+{text:'高菜',reading:'たかな',emoji:'🥬'},{text:'チンゲン菜',reading:'ちんげんさい',emoji:'🥬'},
+{text:'モロヘイヤ',reading:'もろへいや',emoji:'🌿'},{text:'ルッコラ',reading:'るっこら',emoji:'🌿'},
+{text:'フェンネル',reading:'ふぇんねる',emoji:'🌿'},{text:'ローズマリー',reading:'ろーずまりー',emoji:'🌿'},
+{text:'タイム',reading:'たいむ',emoji:'🌿'},{text:'三つ葉',reading:'みつば',emoji:'🌿'},
+{text:'えのき',reading:'えのき',emoji:'🍄'},{text:'スプラウト',reading:'すぷらうと',emoji:'🌱'},
+{text:'ラディッシュ',reading:'らでぃっしゅ',emoji:'🔴'},{text:'菊芋',reading:'きくいも',emoji:'🥔'},
+{text:'空心菜',reading:'くうしんさい',emoji:'🥬'},{text:'芽葱',reading:'めねぎ',emoji:'🌱'},
+{text:'スナップ豆',reading:'すなっぷまめ',emoji:'🫛'},{text:'ポーポー',reading:'ぽーぽー',emoji:'🌿'}
+],
+上級:[
+{text:'ブロッコリー',reading:'ぶろっこりー',emoji:'🥦'},
+{text:'アスパラガス',reading:'あすぱらがす',emoji:'🥬'},
+{text:'キャベツ',reading:'きゃべつ',emoji:'🥬'},
+{text:'とうもろこし',reading:'とうもろこし',emoji:'🌽'},
+{text:'パプリカ',reading:'ぱぷりか',emoji:'🫑'},
+{text:'サツマイモ',reading:'さつまいも',emoji:'🍠'},
+{text:'ジャガイモ',reading:'じゃがいも',emoji:'🥔'},
+{text:'ほうれん草',reading:'ほうれんそう',emoji:'🥬'},
+{text:'カリフラワー',reading:'かりふらわー',emoji:'🥦'},
+{text:'ズッキーニ',reading:'ずっきーに',emoji:'🥒'},
+{text:'ロマネスコ',reading:'ろまねすこ',emoji:'🥦'},
+{text:'ビーツ',reading:'びーつ',emoji:'🔴'},
+{text:'チコリー',reading:'ちこりー',emoji:'🌿'},
+{text:'エンダイブ',reading:'えんだいぶ',emoji:'🌿'},
+{text:'トレビス',reading:'とれびす',emoji:'🥬'},
+{text:'コールラビー',reading:'こーるらびー',emoji:'🥬'},
+{text:'スイスチャード',reading:'すいすちゃーど',emoji:'🥬'},
+{text:'アーティチョーク',reading:'あーてぃちょーく',emoji:'🌿'},
+{text:'エシャロット',reading:'えしゃろっと',emoji:'🧅'},
+{text:'ルバーブ',reading:'るばーぶ',emoji:'🌿'},
+{text:'クレソン',reading:'くれそん',emoji:'🌿'},
+{text:'タラゴン',reading:'たらごん',emoji:'🌿'},
+{text:'コリアンダー',reading:'こりあんだー',emoji:'🌿'},
+{text:'パクチー',reading:'ぱくちー',emoji:'🌿'},
+{text:'レモングラス',reading:'れもんぐらす',emoji:'🌿'},
+{text:'グリーンアスパラ',reading:'ぐりーんあすぱら',emoji:'🥬'},
+{text:'ホワイトアスパラ',reading:'ほわいとあすぱら',emoji:'🥬'},
+{text:'バターナッツかぼちゃ',reading:'ばたーなっつかぼちゃ',emoji:'🎃'},
+{text:'紫にんじん',reading:'むらさきにんじん',emoji:'🥕'},
+{text:'金時にんじん',reading:'きんときにんじん',emoji:'🥕'},
+{text:'オーガニック野菜',reading:'おーがにっくやさい',emoji:'🥦'},
+{text:'旬の食材',reading:'しゅんのしょくざい',emoji:'🌾'},
+{text:'地産地消',reading:'ちさんちしょう',emoji:'🌾'},
+{text:'有機栽培',reading:'ゆうきさいばい',emoji:'🌿'},
+{text:'農薬不使用',reading:'のうやくふしよう',emoji:'🌱'},
+{text:'スパゲッティかぼちゃ',reading:'すぱげってぃかぼちゃ',emoji:'🎃'},
+{text:'フィノッキオ',reading:'ふぃのっきお',emoji:'🌿'},
+{text:'カルドン',reading:'かるどん',emoji:'🌿'},
+{text:'スコルゾネラ',reading:'すこるぞねら',emoji:'🌿'},
+{text:'チャービル',reading:'ちゃーびる',emoji:'🌿'},
+{text:'ガーリックチャイブ',reading:'がーりっくちゃいぶ',emoji:'🌿'},
+{text:'ハーブミックス',reading:'はーぶみっくす',emoji:'🌿'},
+{text:'コールスロー',reading:'こーるすろー',emoji:'🥗'},
+{text:'ベビーリーフ',reading:'べびーりーふ',emoji:'🌿'},
+{text:'マイクロハーブ',reading:'まいくろはーぶ',emoji:'🌿'},
+{text:'エディブルフラワー',reading:'えでぃぶるふらわー',emoji:'🌸'},
+{text:'ラムズレタス',reading:'らむずれたす',emoji:'🌿'},
+{text:'フリルレタス',reading:'ふりるれたす',emoji:'🥬'},
+{text:'サニーレタス',reading:'さにーれたす',emoji:'🥬'},
+{text:'グリーンカール',reading:'ぐりーんかーる',emoji:'🥬'}
+]
+},
+くだもの:{
+初級:[
+{text:'苺',reading:'いちご',emoji:'🍓'},{text:'柿',reading:'かき',emoji:'🍑'},
+{text:'梨',reading:'なし',emoji:'🍐'},{text:'桃',reading:'もも',emoji:'🍑'},
+{text:'林檎',reading:'りんご',emoji:'🍎'},{text:'ぶどう',reading:'ぶどう',emoji:'🍇'},
+{text:'蜜柑',reading:'みかん',emoji:'🍊'},{text:'梅',reading:'うめ',emoji:'🍈'},
+{text:'柚子',reading:'ゆず',emoji:'🍋'},{text:'桜桃',reading:'さくらんぼ',emoji:'🍒'},
+{text:'金柑',reading:'きんかん',emoji:'🍊'},{text:'いちじく',reading:'いちじく',emoji:'🍈'},
+{text:'すもも',reading:'すもも',emoji:'🫐'},{text:'あんず',reading:'あんず',emoji:'🍑'},
+{text:'びわ',reading:'びわ',emoji:'🍊'},{text:'くり',reading:'くり',emoji:'🌰'},
+{text:'くるみ',reading:'くるみ',emoji:'🌰'},{text:'甘い',reading:'あまい',emoji:'🍬'},
+{text:'酸っぱい',reading:'すっぱい',emoji:'🍋'},{text:'熟れた',reading:'うれた',emoji:'🍑'},
+{text:'果汁',reading:'かじゅう',emoji:'🧃'},{text:'ジャム',reading:'じゃむ',emoji:'🫙'},
+{text:'デザート',reading:'でざーと',emoji:'🍮'},{text:'おやつ',reading:'おやつ',emoji:'🍓'},
+{text:'フルーツ',reading:'ふるーつ',emoji:'🍓'},{text:'ビタミン',reading:'びたみん',emoji:'💊'},
+{text:'果肉',reading:'かにく',emoji:'🍑'},{text:'皮をむく',reading:'かわをむく',emoji:'🍊'},
+{text:'種を取る',reading:'たねをとる',emoji:'🍒'},{text:'旬の果物',reading:'しゅんのくだもの',emoji:'🍎'},
+{text:'赤い実',reading:'あかいみ',emoji:'🍒'},{text:'青い実',reading:'あおいみ',emoji:'🍏'},
+{text:'黄色い実',reading:'きいろいみ',emoji:'🍋'},{text:'紫の実',reading:'むらさきのみ',emoji:'🫐'},
+{text:'果物屋',reading:'くだものや',emoji:'🛒'},{text:'朝ごはん',reading:'あさごはん',emoji:'🍽'},
+{text:'食後',reading:'しょくご',emoji:'🍑'},{text:'甘ずっぱい',reading:'あまずっぱい',emoji:'🍊'},
+{text:'実がなる',reading:'みがなる',emoji:'🌳'},{text:'収穫する',reading:'しゅうかくする',emoji:'🧺'},
+{text:'橙色',reading:'だいだいいろ',emoji:'🍊'},{text:'季節の実',reading:'きせつのみ',emoji:'🍇'},
+{text:'新鮮な',reading:'しんせんな',emoji:'🍎'},{text:'甘味',reading:'あまみ',emoji:'🍬'},
+{text:'夏みかん',reading:'なつみかん',emoji:'🍊'},{text:'ざくろ',reading:'ざくろ',emoji:'🍎'},
+{text:'ぎんなん',reading:'ぎんなん',emoji:'🌰'},{text:'間食',reading:'かんしょく',emoji:'🍩'},
+{text:'おいしい',reading:'おいしい',emoji:'😋'},{text:'自然の甘さ',reading:'しぜんのあまさ',emoji:'🍎'}
+],
+中級:[
+{text:'メロン',reading:'めろん',emoji:'🍈'},{text:'バナナ',reading:'ばなな',emoji:'🍌'},
+{text:'レモン',reading:'れもん',emoji:'🍋'},{text:'キウイ',reading:'きうい',emoji:'🥝'},
+{text:'マンゴー',reading:'まんごー',emoji:'🥭'},{text:'スイカ',reading:'すいか',emoji:'🍉'},
+{text:'サクランボ',reading:'さくらんぼ',emoji:'🍒'},{text:'グレープフルーツ',reading:'ぐれーぷふるーつ',emoji:'🍊'},
+{text:'アボカド',reading:'あぼかど',emoji:'🥑'},{text:'ライチ',reading:'らいち',emoji:'🍈'},
+{text:'パパイヤ',reading:'ぱぱいや',emoji:'🥭'},{text:'ドラゴンフルーツ',reading:'どらごんふるーつ',emoji:'🐉'},
+{text:'スターフルーツ',reading:'すたーふるーつ',emoji:'⭐'},{text:'ポメロ',reading:'ぽめろ',emoji:'🍊'},
+{text:'タンジェリン',reading:'たんじぇりん',emoji:'🍊'},{text:'ブラッドオレンジ',reading:'ぶらっどおれんじ',emoji:'🍊'},
+{text:'ネーブルオレンジ',reading:'ねーぶるおれんじ',emoji:'🍊'},{text:'デコポン',reading:'でこぽん',emoji:'🍊'},
+{text:'あまなつ',reading:'あまなつ',emoji:'🍊'},{text:'はっさく',reading:'はっさく',emoji:'🍊'},
+{text:'晩白柚',reading:'ばんぺいゆ',emoji:'🍋'},{text:'スダチ',reading:'すだち',emoji:'🍋'},
+{text:'カボス',reading:'かぼす',emoji:'🍋'},{text:'ライム',reading:'らいむ',emoji:'🍋'},
+{text:'シークワーサー',reading:'しーくわーさー',emoji:'🍋'},{text:'シャインマスカット',reading:'しゃいんますかっと',emoji:'🍇'},
+{text:'ピオーネ',reading:'ぴおーね',emoji:'🍇'},{text:'巨峰',reading:'きょほう',emoji:'🍇'},
+{text:'デラウェア',reading:'でらうぇあ',emoji:'🍇'},{text:'藤稔',reading:'ふじみのり',emoji:'🍇'},
+{text:'ナイアガラ',reading:'ないあがら',emoji:'🍇'},{text:'紅マドンナ',reading:'べにまどんな',emoji:'🍊'},
+{text:'甘平',reading:'かんぺい',emoji:'🍊'},{text:'天草',reading:'あまくさ',emoji:'🍊'},
+{text:'サクランボ',reading:'さくらんぼ',emoji:'🍒'},{text:'温州みかん',reading:'うんしゅうみかん',emoji:'🍊'},
+{text:'ランブータン',reading:'らんぶーたん',emoji:'🍈'},{text:'ジャックフルーツ',reading:'じゃっくふるーつ',emoji:'🍈'},
+{text:'クレメンタイン',reading:'くれめんたいん',emoji:'🍊'},{text:'バレンシアオレンジ',reading:'ばれんしあおれんじ',emoji:'🍊'},
+{text:'セミノール',reading:'せみのーる',emoji:'🍊'},{text:'ブンタン',reading:'ぶんたん',emoji:'🍋'},
+{text:'ユズ',reading:'ゆず',emoji:'🍋'},{text:'甲斐路',reading:'かいじ',emoji:'🍇'},
+{text:'高墨',reading:'たかすみ',emoji:'🍇'},{text:'愛媛みかん',reading:'えひめみかん',emoji:'🍊'},
+{text:'ダイダイ',reading:'だいだい',emoji:'🍊'},{text:'ベリーA',reading:'べりーえー',emoji:'🍇'},
+{text:'ロザリオビアンコ',reading:'ろざりおびあんこ',emoji:'🍇'},{text:'ドルチェ',reading:'どるちぇ',emoji:'🍊'}
+],
+上級:[
+{text:'パイナップル',reading:'ぱいなっぷる',emoji:'🍍'},
+{text:'ブルーベリー',reading:'ぶるーべりー',emoji:'🫐'},
+{text:'ラズベリー',reading:'らずべりー',emoji:'🍓'},
+{text:'マンゴスチン',reading:'まんごすちん',emoji:'🍈'},
+{text:'デュリアン',reading:'でゅりあん',emoji:'🍈'},
+{text:'ゴールデンキウイ',reading:'ごーるでんきうい',emoji:'🥝'},
+{text:'ドラゴンフルーツ',reading:'どらごんふるーつ',emoji:'🐉'},
+{text:'フェイジョア',reading:'ふぇいじょあ',emoji:'🍈'},
+{text:'グアバ',reading:'ぐあば',emoji:'🍈'},
+{text:'ビルベリー',reading:'びるべりー',emoji:'🫐'},
+{text:'ボイセンベリー',reading:'ぼいせんべりー',emoji:'🫐'},
+{text:'エルダーベリー',reading:'えるだーべりー',emoji:'🫐'},
+{text:'クランベリー',reading:'くらんべりー',emoji:'🍒'},
+{text:'ゴジベリー',reading:'ごじべりー',emoji:'🍒'},
+{text:'アサイー',reading:'あさいー',emoji:'🫐'},
+{text:'カカオフルーツ',reading:'かかおふるーつ',emoji:'🍫'},
+{text:'タマリンド',reading:'たまりんど',emoji:'🍈'},
+{text:'チェリモヤ',reading:'ちぇりもや',emoji:'🍈'},
+{text:'サポジラ',reading:'さぽじら',emoji:'🍈'},
+{text:'シュガーアップル',reading:'しゅがーあっぷる',emoji:'🍏'},
+{text:'カスタードアップル',reading:'かすたーどあっぷる',emoji:'🍏'},
+{text:'ジャボチカバ',reading:'じゃぼちかば',emoji:'🍇'},
+{text:'スネークフルーツ',reading:'すねーくふるーつ',emoji:'🍈'},
+{text:'ナンカ',reading:'なんか',emoji:'🍈'},
+{text:'ケンジントンプライド',reading:'けんじんとんぷらいど',emoji:'🥭'},
+{text:'ナムドクマイ',reading:'なむどくまい',emoji:'🥭'},
+{text:'アルフォンソ',reading:'あるふぉんそ',emoji:'🥭'},
+{text:'ハデン',reading:'はでん',emoji:'🥭'},
+{text:'ルクマ',reading:'るくま',emoji:'🍈'},
+{text:'アビウ',reading:'あびう',emoji:'🍈'},
+{text:'カムカム',reading:'かむかむ',emoji:'🍒'},
+{text:'サワーソップ',reading:'さわーそっぷ',emoji:'🍈'},
+{text:'ウォーターアップル',reading:'うぉーたーあっぷる',emoji:'🍎'},
+{text:'ベルフルーツ',reading:'べるふるーつ',emoji:'🍐'},
+{text:'ハックルベリー',reading:'はっくるべりー',emoji:'🫐'},
+{text:'ランサネス',reading:'らんさねす',emoji:'🍈'},
+{text:'マラン',reading:'まらん',emoji:'🍈'},
+{text:'カリッサ',reading:'かりっさ',emoji:'🍒'},
+{text:'ジャンボー',reading:'じゃんぼー',emoji:'🍈'},
+{text:'クプアス',reading:'くぷあす',emoji:'🍈'},
+{text:'ホワイトサポテ',reading:'ほわいとさぽて',emoji:'🍈'},
+{text:'アテモヤ',reading:'あてもや',emoji:'🍈'},
+{text:'マミーサポテ',reading:'まみーさぽて',emoji:'🍈'},
+{text:'ピタヤ',reading:'ぴたや',emoji:'🐉'},
+{text:'リードマンゴー',reading:'りーどまんごー',emoji:'🥭'},
+{text:'アーウィン',reading:'あーうぃん',emoji:'🥭'},
+{text:'キットチェン',reading:'きっとちぇん',emoji:'🥭'},
+{text:'カラボ',reading:'からぼ',emoji:'🥭'},
+{text:'フォレストマンゴー',reading:'ふぉれすとまんごー',emoji:'🥭'},
+{text:'カリフォルニアマンゴー',reading:'かりふぉるにあまんごー',emoji:'🥭'},
+{text:'紅はるかいも',reading:'べにはるかいも',emoji:'🍠'}
+]
+},
+どうぶつ:{
+初級:[
+{text:'犬',reading:'いぬ',emoji:'🐶'},{text:'猫',reading:'ねこ',emoji:'🐱'},
+{text:'牛',reading:'うし',emoji:'🐮'},{text:'馬',reading:'うま',emoji:'🐴'},
+{text:'豚',reading:'ぶた',emoji:'🐷'},{text:'鳥',reading:'とり',emoji:'🐦'},
+{text:'猿',reading:'さる',emoji:'🐵'},{text:'鹿',reading:'しか',emoji:'🦌'},
+{text:'魚',reading:'さかな',emoji:'🐟'},{text:'虫',reading:'むし',emoji:'🐛'},
+{text:'亀',reading:'かめ',emoji:'🐢'},{text:'蛙',reading:'かえる',emoji:'🐸'},
+{text:'蛇',reading:'へび',emoji:'🐍'},{text:'熊',reading:'くま',emoji:'🐻'},
+{text:'狐',reading:'きつね',emoji:'🦊'},{text:'狸',reading:'たぬき',emoji:'🦝'},
+{text:'兎',reading:'うさぎ',emoji:'🐰'},{text:'羊',reading:'ひつじ',emoji:'🐑'},
+{text:'虎',reading:'とら',emoji:'🐯'},{text:'象',reading:'ぞう',emoji:'🐘'},
+{text:'犬小屋',reading:'いぬごや',emoji:'🐶'},{text:'牧場',reading:'ぼくじょう',emoji:'🐄'},
+{text:'動物園',reading:'どうぶつえん',emoji:'🦁'},{text:'水族館',reading:'すいぞくかん',emoji:'🐟'},
+{text:'飼う',reading:'かう',emoji:'🐾'},{text:'ペット',reading:'ぺっと',emoji:'🐾'},
+{text:'走る',reading:'はしる',emoji:'🐎'},{text:'泳ぐ',reading:'およぐ',emoji:'🐟'},
+{text:'飛ぶ',reading:'とぶ',emoji:'🐦'},{text:'鳴く',reading:'なく',emoji:'🐶'},
+{text:'食べる',reading:'たべる',emoji:'🐻'},{text:'尻尾',reading:'しっぽ',emoji:'🐕'},
+{text:'毛皮',reading:'けがわ',emoji:'🦊'},{text:'牙',reading:'きば',emoji:'🐯'},
+{text:'爪',reading:'つめ',emoji:'🐾'},{text:'角',reading:'つの',emoji:'🦌'},
+{text:'羽根',reading:'はね',emoji:'🐦'},{text:'卵',reading:'たまご',emoji:'🥚'},
+{text:'巣',reading:'す',emoji:'🐦'},{text:'エサ',reading:'えさ',emoji:'🦁'},
+{text:'野生',reading:'やせい',emoji:'🐘'},{text:'家畜',reading:'かちく',emoji:'🐄'},
+{text:'絶滅',reading:'ぜつめつ',emoji:'🦤'},{text:'保護',reading:'ほご',emoji:'🌿'},
+{text:'自然',reading:'しぜん',emoji:'🌳'},{text:'生き物',reading:'いきもの',emoji:'🐾'},
+{text:'猫耳',reading:'ねこみみ',emoji:'🐱'},{text:'犬歯',reading:'けんし',emoji:'🦷'},
+{text:'獅子',reading:'しし',emoji:'🦁'},{text:'豹',reading:'ひょう',emoji:'🐆'},
+{text:'寝る',reading:'ねる',emoji:'🐱'},{text:'遊ぶ',reading:'あそぶ',emoji:'🐾'}
+],
+中級:[
+{text:'キリン',reading:'きりん',emoji:'🦒'},{text:'パンダ',reading:'ぱんだ',emoji:'🐼'},
+{text:'コアラ',reading:'こあら',emoji:'🐨'},{text:'ヒツジ',reading:'ひつじ',emoji:'🐑'},
+{text:'ウサギ',reading:'うさぎ',emoji:'🐰'},{text:'シマウマ',reading:'しまうま',emoji:'🦓'},
+{text:'ペンギン',reading:'ぺんぎん',emoji:'🐧'},{text:'ゴリラ',reading:'ごりら',emoji:'🦍'},
+{text:'ラクダ',reading:'らくだ',emoji:'🐪'},{text:'ヤギ',reading:'やぎ',emoji:'🐐'},
+{text:'ロバ',reading:'ろば',emoji:'🫏'},{text:'ラマ',reading:'らま',emoji:'🦙'},
+{text:'アルパカ',reading:'あるぱか',emoji:'🦙'},{text:'フラミンゴ',reading:'ふらみんご',emoji:'🦩'},
+{text:'オウム',reading:'おうむ',emoji:'🦜'},{text:'ハクチョウ',reading:'はくちょう',emoji:'🦢'},
+{text:'ペリカン',reading:'ぺりかん',emoji:'🐦'},{text:'フクロウ',reading:'ふくろう',emoji:'🦉'},
+{text:'タカ',reading:'たか',emoji:'🦅'},{text:'ワシ',reading:'わし',emoji:'🦅'},
+{text:'ハヤブサ',reading:'はやぶさ',emoji:'🦅'},{text:'カモメ',reading:'かもめ',emoji:'🐦'},
+{text:'ツバメ',reading:'つばめ',emoji:'🐦'},{text:'スズメ',reading:'すずめ',emoji:'🐦'},
+{text:'カラス',reading:'からす',emoji:'🐦'},{text:'ハト',reading:'はと',emoji:'🕊'},
+{text:'インコ',reading:'いんこ',emoji:'🦜'},{text:'カナリア',reading:'かなりあ',emoji:'🐦'},
+{text:'カピバラ',reading:'かぴばら',emoji:'🐹'},{text:'ハムスター',reading:'はむすたー',emoji:'🐹'},
+{text:'アルマジロ',reading:'あるまじろ',emoji:'🦎'},{text:'カメレオン',reading:'かめれおん',emoji:'🦎'},
+{text:'イグアナ',reading:'いぐあな',emoji:'🦎'},{text:'コモドドラゴン',reading:'こもどどらごん',emoji:'🦎'},
+{text:'ニシキヘビ',reading:'にしきへび',emoji:'🐍'},{text:'コブラ',reading:'こぶら',emoji:'🐍'},
+{text:'タランチュラ',reading:'たらんちゅら',emoji:'🕷'},{text:'サソリ',reading:'さそり',emoji:'🦂'},
+{text:'カブトムシ',reading:'かぶとむし',emoji:'🪲'},{text:'クワガタ',reading:'くわがた',emoji:'🪲'},
+{text:'ホタル',reading:'ほたる',emoji:'✨'},{text:'バッファロー',reading:'ばっふぁろー',emoji:'🦬'},
+{text:'プレーリードッグ',reading:'ぷれーりーどっぐ',emoji:'🐾'},{text:'ゲッコー',reading:'げっこー',emoji:'🦎'},
+{text:'アナコンダ',reading:'あなこんだ',emoji:'🐍'},{text:'ガラガラヘビ',reading:'がらがらへび',emoji:'🐍'},
+{text:'ウミネコ',reading:'うみねこ',emoji:'🐦'},{text:'カモ',reading:'かも',emoji:'🦆'},
+{text:'コウノトリ',reading:'こうのとり',emoji:'🐦'},{text:'トキ',reading:'とき',emoji:'🐦'}
+],
+上級:[
+{text:'チンパンジー',reading:'ちんぱんじー',emoji:'🐒'},
+{text:'カンガルー',reading:'かんがるー',emoji:'🦘'},
+{text:'ハリネズミ',reading:'はりねずみ',emoji:'🦔'},
+{text:'ジャイアントパンダ',reading:'じゃいあんとぱんだ',emoji:'🐼'},
+{text:'シロクマ',reading:'しろくま',emoji:'🐻'},
+{text:'グリズリー',reading:'ぐりずりー',emoji:'🐻'},
+{text:'アミメキリン',reading:'あみめきりん',emoji:'🦒'},
+{text:'ピグミーカバ',reading:'ぴぐみーかば',emoji:'🦛'},
+{text:'クロサイ',reading:'くろさい',emoji:'🦏'},
+{text:'スマトラトラ',reading:'すまとらとら',emoji:'🐯'},
+{text:'アムールトラ',reading:'あむーるとら',emoji:'🐯'},
+{text:'ベンガルトラ',reading:'べんがるとら',emoji:'🐯'},
+{text:'ホワイトタイガー',reading:'ほわいとたいがー',emoji:'🐯'},
+{text:'ユキヒョウ',reading:'ゆきひょう',emoji:'🐆'},
+{text:'クロヒョウ',reading:'くろひょう',emoji:'🐆'},
+{text:'ジャガー',reading:'じゃがー',emoji:'🐆'},
+{text:'チーター',reading:'ちーたー',emoji:'🐆'},
+{text:'ピューマ',reading:'ぴゅーま',emoji:'🦁'},
+{text:'オセロット',reading:'おせろっと',emoji:'🐆'},
+{text:'ボブキャット',reading:'ぼぶきゃっと',emoji:'🐈'},
+{text:'セルバル',reading:'せるばる',emoji:'🐈'},
+{text:'カラカル',reading:'からかる',emoji:'🐈'},
+{text:'インパラ',reading:'いんぱら',emoji:'🦌'},
+{text:'トムソンガゼル',reading:'とむそんがぜる',emoji:'🦌'},
+{text:'スプリングボック',reading:'すぷりんぐぼっく',emoji:'🦌'},
+{text:'オリックス',reading:'おりっくす',emoji:'🦌'},
+{text:'エランド',reading:'えらんど',emoji:'🦌'},
+{text:'クーズー',reading:'くーずー',emoji:'🦌'},
+{text:'タスマニアデビル',reading:'たすまにあでびる',emoji:'🐾'},
+{text:'クオッカ',reading:'くおっか',emoji:'🐾'},
+{text:'ウォンバット',reading:'うぉんばっと',emoji:'🐾'},
+{text:'ポッサム',reading:'ぽっさむ',emoji:'🐾'},
+{text:'バンディクート',reading:'ばんでぃくーと',emoji:'🐾'},
+{text:'エキドナ',reading:'えきどな',emoji:'🦔'},
+{text:'カモノハシ',reading:'かものはし',emoji:'🦆'},
+{text:'ナマケモノ',reading:'なまけもの',emoji:'🐾'},
+{text:'アリクイ',reading:'ありくい',emoji:'🐾'},
+{text:'オオアリクイ',reading:'おおありくい',emoji:'🐾'},
+{text:'センザンコウ',reading:'せんざんこう',emoji:'🐾'},
+{text:'ツチブタ',reading:'つちぶた',emoji:'🐾'},
+{text:'ハイエナ',reading:'はいえな',emoji:'🐾'},
+{text:'リカオン',reading:'りかおん',emoji:'🐾'},
+{text:'ジャッカル',reading:'じゃっかる',emoji:'🐺'},
+{text:'ディンゴ',reading:'でぃんご',emoji:'🐕'},
+{text:'ポーラーベア',reading:'ぽーらーべあ',emoji:'🐻'},
+{text:'コモドオオトカゲ',reading:'こもどおおとかげ',emoji:'🦎'},
+{text:'オカピ',reading:'おかぴ',emoji:'🦒'},
+{text:'マンドリル',reading:'まんどりる',emoji:'🐒'},
+{text:'プロボスキス',reading:'ぷろぼすきす',emoji:'🐒'},
+{text:'ハウラーモンキー',reading:'はうらーもんきー',emoji:'🐒'},
+{text:'スパイダーモンキー',reading:'すぱいだーもんきー',emoji:'🐒'}
+]
+},
+たべもの:{
+初級:[
+{text:'飯',reading:'めし',emoji:'🍚'},{text:'麺',reading:'めん',emoji:'🍜'},
+{text:'肉',reading:'にく',emoji:'🥩'},{text:'卵',reading:'たまご',emoji:'🥚'},
+{text:'塩',reading:'しお',emoji:'🧂'},{text:'醤油',reading:'しょうゆ',emoji:'🫙'},
+{text:'砂糖',reading:'さとう',emoji:'🍬'},{text:'油',reading:'あぶら',emoji:'🫙'},
+{text:'パン',reading:'ぱん',emoji:'🍞'},{text:'餅',reading:'もち',emoji:'🍡'},
+{text:'豆腐',reading:'とうふ',emoji:'🟫'},{text:'味噌',reading:'みそ',emoji:'🫙'},
+{text:'汁物',reading:'しるもの',emoji:'🍲'},{text:'丼',reading:'どんぶり',emoji:'🍚'},
+{text:'弁当',reading:'べんとう',emoji:'🍱'},{text:'定食',reading:'ていしょく',emoji:'🍽'},
+{text:'給食',reading:'きゅうしょく',emoji:'🍚'},{text:'朝食',reading:'ちょうしょく',emoji:'🍳'},
+{text:'昼食',reading:'ちゅうしょく',emoji:'🍜'},{text:'夕食',reading:'ゆうしょく',emoji:'🍚'},
+{text:'お菓子',reading:'おかし',emoji:'🍬'},{text:'飲み物',reading:'のみもの',emoji:'🥤'},
+{text:'水',reading:'みず',emoji:'💧'},{text:'牛乳',reading:'ぎゅうにゅう',emoji:'🥛'},
+{text:'ジュース',reading:'じゅーす',emoji:'🧃'},{text:'茶',reading:'ちゃ',emoji:'🍵'},
+{text:'コーヒー',reading:'こーひー',emoji:'☕'},{text:'甘い',reading:'あまい',emoji:'🍬'},
+{text:'辛い',reading:'からい',emoji:'🌶'},{text:'酸っぱい',reading:'すっぱい',emoji:'🍋'},
+{text:'旨い',reading:'うまい',emoji:'😋'},{text:'熱い',reading:'あつい',emoji:'🔥'},
+{text:'冷たい',reading:'つめたい',emoji:'🧊'},{text:'もちもち',reading:'もちもち',emoji:'🍡'},
+{text:'サクサク',reading:'さくさく',emoji:'🥐'},{text:'ふわふわ',reading:'ふわふわ',emoji:'🧁'},
+{text:'作る',reading:'つくる',emoji:'👨‍🍳'},{text:'食べる',reading:'たべる',emoji:'😋'},
+{text:'飲む',reading:'のむ',emoji:'🥤'},{text:'洗う',reading:'あらう',emoji:'🚿'},
+{text:'間食',reading:'かんしょく',emoji:'🍩'},{text:'魚',reading:'さかな',emoji:'🐟'},
+{text:'出汁',reading:'だし',emoji:'🫕'},{text:'酢',reading:'す',emoji:'🫙'},
+{text:'苦い',reading:'にがい',emoji:'🍺'},{text:'塩辛い',reading:'しおからい',emoji:'🧂'},
+{text:'柔らかい',reading:'やわらかい',emoji:'🍮'},{text:'固い',reading:'かたい',emoji:'🦴'},
+{text:'まずい',reading:'まずい',emoji:'😫'},{text:'料理する',reading:'りょうりする',emoji:'🍳'}
+],
+中級:[
+{text:'寿司',reading:'すし',emoji:'🍣'},{text:'天ぷら',reading:'てんぷら',emoji:'🍤'},
+{text:'焼肉',reading:'やきにく',emoji:'🥩'},{text:'刺身',reading:'さしみ',emoji:'🐟'},
+{text:'うどん',reading:'うどん',emoji:'🍜'},{text:'蕎麦',reading:'そば',emoji:'🍜'},
+{text:'ラーメン',reading:'らーめん',emoji:'🍜'},{text:'カレー',reading:'かれー',emoji:'🍛'},
+{text:'焼き鳥',reading:'やきとり',emoji:'🍢'},{text:'おでん',reading:'おでん',emoji:'🍢'},
+{text:'鍋料理',reading:'なべりょうり',emoji:'🫕'},{text:'茶碗蒸し',reading:'ちゃわんむし',emoji:'🥚'},
+{text:'漬物',reading:'つけもの',emoji:'🫙'},{text:'煮物',reading:'にもの',emoji:'🍲'},
+{text:'揚げ物',reading:'あげもの',emoji:'🍤'},{text:'炒め物',reading:'いためもの',emoji:'🍳'},
+{text:'焼き物',reading:'やきもの',emoji:'🔥'},{text:'酢の物',reading:'すのもの',emoji:'🫙'},
+{text:'サラダ',reading:'さらだ',emoji:'🥗'},{text:'スープ',reading:'すーぷ',emoji:'🍲'},
+{text:'グラタン',reading:'ぐらたん',emoji:'🫕'},{text:'ピザ',reading:'ぴざ',emoji:'🍕'},
+{text:'パスタ',reading:'ぱすた',emoji:'🍝'},{text:'ステーキ',reading:'すてーき',emoji:'🥩'},
+{text:'ハンバーグ',reading:'はんばーぐ',emoji:'🍔'},{text:'コロッケ',reading:'ころっけ',emoji:'🥔'},
+{text:'エビフライ',reading:'えびふらい',emoji:'🦐'},{text:'とんかつ',reading:'とんかつ',emoji:'🥩'},
+{text:'唐揚げ',reading:'からあげ',emoji:'🍗'},{text:'春巻き',reading:'はるまき',emoji:'🥢'},
+{text:'餃子',reading:'ぎょうざ',emoji:'🥟'},{text:'シュウマイ',reading:'しゅうまい',emoji:'🥟'},
+{text:'小龍包',reading:'しょうろんぽう',emoji:'🥟'},{text:'チャーハン',reading:'ちゃーはん',emoji:'🍳'},
+{text:'麻婆豆腐',reading:'まーぼーどうふ',emoji:'🌶'},{text:'回鍋肉',reading:'ほいこーろー',emoji:'🥩'},
+{text:'青椒肉絲',reading:'ちんじゃおろーす',emoji:'🫑'},{text:'バンバンジー',reading:'ばんばんじー',emoji:'🍗'},
+{text:'タコス',reading:'たこす',emoji:'🌮'},{text:'ブリトー',reading:'ぶりとー',emoji:'🌯'},
+{text:'ケバブ',reading:'けばぶ',emoji:'🥙'},{text:'フォー',reading:'ふぉー',emoji:'🍜'},
+{text:'パッタイ',reading:'ぱったい',emoji:'🍜'},{text:'ビリヤニ',reading:'びりやに',emoji:'🍛'},
+{text:'ナシゴレン',reading:'なしごれん',emoji:'🍳'},{text:'トムヤムクン',reading:'とむやむくん',emoji:'🍲'},
+{text:'フォアグラ',reading:'ふぉあぐら',emoji:'🦆'},{text:'トリュフ',reading:'とりゅふ',emoji:'🍄'},
+{text:'カキフライ',reading:'かきふらい',emoji:'🦪'},{text:'蒸し物',reading:'むしもの',emoji:'🫕'}
+],
+上級:[
+{text:'フレンチトースト',reading:'ふれんちとーすと',emoji:'🍞'},
+{text:'エッグベネディクト',reading:'えっぐべねでぃくと',emoji:'🥚'},
+{text:'クロワッサン',reading:'くろわっさん',emoji:'🥐'},
+{text:'フォカッチャ',reading:'ふぉかっちゃ',emoji:'🥖'},
+{text:'ブリオッシュ',reading:'ぶりおっしゅ',emoji:'🧁'},
+{text:'マカロン',reading:'まかろん',emoji:'🍬'},
+{text:'クレームブリュレ',reading:'くれーむぶりゅれ',emoji:'🍮'},
+{text:'ミルフィーユ',reading:'みるふぃーゆ',emoji:'🍰'},
+{text:'シュークリーム',reading:'しゅーくりーむ',emoji:'🧁'},
+{text:'エクレア',reading:'えくれあ',emoji:'🍫'},
+{text:'ガトーショコラ',reading:'がとーしょこら',emoji:'🍰'},
+{text:'ティラミス',reading:'てぃらみす',emoji:'🍮'},
+{text:'パンナコッタ',reading:'ぱんなこった',emoji:'🍮'},
+{text:'ザッハトルテ',reading:'ざっはとるて',emoji:'🍰'},
+{text:'テリーヌ',reading:'てりーぬ',emoji:'🥩'},
+{text:'コンフィ',reading:'こんふぃ',emoji:'🍗'},
+{text:'ラタトゥイユ',reading:'らたとぅいゆ',emoji:'🍲'},
+{text:'ブイヤベース',reading:'ぶいやべーす',emoji:'🦞'},
+{text:'ポトフ',reading:'ぽとふ',emoji:'🫕'},
+{text:'クリームシチュー',reading:'くりーむしちゅー',emoji:'🫕'},
+{text:'ビーフシチュー',reading:'びーふしちゅー',emoji:'🫕'},
+{text:'ミネストローネ',reading:'みねすとろーね',emoji:'🍲'},
+{text:'リゾット',reading:'りぞっと',emoji:'🍚'},
+{text:'ジェノベーゼ',reading:'じぇのべーぜ',emoji:'🌿'},
+{text:'アラビアータ',reading:'あらびあーた',emoji:'🍝'},
+{text:'ボロネーゼ',reading:'ぼろねーぜ',emoji:'🍝'},
+{text:'カルボナーラ',reading:'かるぼなーら',emoji:'🍝'},
+{text:'アマトリチャーナ',reading:'あまとりちゃーな',emoji:'🍝'},
+{text:'ヴォンゴレ',reading:'ゔぉんごれ',emoji:'🦪'},
+{text:'ペスカトーレ',reading:'ぺすかとーれ',emoji:'🦞'},
+{text:'グリーンカレー',reading:'ぐりーんかれー',emoji:'🍛'},
+{text:'イエローカレー',reading:'いえろーかれー',emoji:'🍛'},
+{text:'マッサマンカレー',reading:'まっさまんかれー',emoji:'🍛'},
+{text:'バターチキンカレー',reading:'ばたーちきんかれー',emoji:'🍛'},
+{text:'サグパニール',reading:'さぐぱにーる',emoji:'🍛'},
+{text:'チキンティッカマサラ',reading:'ちきんてぃっかまさら',emoji:'🍛'},
+{text:'ダルマカニ',reading:'だるまかに',emoji:'🫕'},
+{text:'ロガンジョッシュ',reading:'ろがんじょっしゅ',emoji:'🍛'},
+{text:'オッソブーコ',reading:'おっそぶーこ',emoji:'🦴'},
+{text:'カチャトーラ',reading:'かちゃとーら',emoji:'🍗'},
+{text:'ムサカ',reading:'むさか',emoji:'🍆'},
+{text:'スパナコピタ',reading:'すぱなこぴた',emoji:'🥬'},
+{text:'ポレンタ',reading:'ぽれんた',emoji:'🌽'},
+{text:'リーフパイ',reading:'りーふぱい',emoji:'🥐'},
+{text:'ガナッシュ',reading:'がなっしゅ',emoji:'🍫'},
+{text:'プラリネ',reading:'ぷらりね',emoji:'🍬'},
+{text:'ニース風サラダ',reading:'にーすふうさらだ',emoji:'🥗'},
+{text:'バゲット',reading:'ばげっと',emoji:'🥖'},
+{text:'チャバタ',reading:'ちゃばた',emoji:'🥖'},
+{text:'プットネスカ',reading:'ぷっとねすか',emoji:'🍝'}
+]
+},
+バスケ:{
+初級:[
+{text:'球',reading:'たま',emoji:'🏀'},{text:'輪',reading:'わ',emoji:'⭕'},
+{text:'投げる',reading:'なげる',emoji:'🏀'},{text:'走る',reading:'はしる',emoji:'🏃'},
+{text:'跳ぶ',reading:'とぶ',emoji:'⬆'},{text:'取る',reading:'とる',emoji:'🤲'},
+{text:'入る',reading:'はいる',emoji:'🏀'},{text:'当たる',reading:'あたる',emoji:'💥'},
+{text:'外す',reading:'はずす',emoji:'😓'},{text:'守る',reading:'まもる',emoji:'🛡'},
+{text:'攻める',reading:'せめる',emoji:'⚔'},{text:'パス',reading:'ぱす',emoji:'🤲'},
+{text:'点',reading:'てん',emoji:'⭐'},{text:'負け',reading:'まけ',emoji:'😿'},
+{text:'勝ち',reading:'かち',emoji:'🏆'},{text:'チーム',reading:'ちーむ',emoji:'👥'},
+{text:'選手',reading:'せんしゅ',emoji:'👤'},{text:'試合',reading:'しあい',emoji:'🏀'},
+{text:'審判',reading:'しんぱん',emoji:'👋'},{text:'ボール',reading:'ぼーる',emoji:'🏀'},
+{text:'コート',reading:'こーと',emoji:'🏟'},{text:'ゴール',reading:'ごーる',emoji:'⭕'},
+{text:'バスケ',reading:'ばすけ',emoji:'🏀'},{text:'練習',reading:'れんしゅう',emoji:'💪'},
+{text:'決める',reading:'きめる',emoji:'🎯'},{text:'失敗',reading:'しっぱい',emoji:'😓'},
+{text:'成功',reading:'せいこう',emoji:'🎉'},{text:'頑張る',reading:'がんばる',emoji:'💪'},
+{text:'楽しい',reading:'たのしい',emoji:'😊'},{text:'難しい',reading:'むずかしい',emoji:'🤔'},
+{text:'速い',reading:'はやい',emoji:'⚡'},{text:'高い',reading:'たかい',emoji:'📏'},
+{text:'強い',reading:'つよい',emoji:'💪'},{text:'弱い',reading:'よわい',emoji:'😢'},
+{text:'上手',reading:'じょうず',emoji:'✨'},{text:'下手',reading:'へた',emoji:'😅'},
+{text:'真剣',reading:'しんけん',emoji:'😤'},{text:'仲間',reading:'なかま',emoji:'👥'},
+{text:'応援',reading:'おうえん',emoji:'📣'},{text:'声',reading:'こえ',emoji:'📢'},
+{text:'汗',reading:'あせ',emoji:'💧'},{text:'疲れ',reading:'つかれ',emoji:'😮‍💨'},
+{text:'体',reading:'からだ',emoji:'💪'},{text:'心',reading:'こころ',emoji:'❤'},
+{text:'笑う',reading:'わらう',emoji:'😂'},{text:'叫ぶ',reading:'さけぶ',emoji:'📣'},
+{text:'試す',reading:'ためす',emoji:'🎯'},{text:'休む',reading:'やすむ',emoji:'😴'},
+{text:'水',reading:'みず',emoji:'💧'},{text:'泣く',reading:'なく',emoji:'😭'}
+],
+中級:[
+{text:'ドリブル',reading:'どりぶる',emoji:'🏀'},{text:'シュート',reading:'しゅーと',emoji:'🎯'},
+{text:'レイアップ',reading:'れいあっぷ',emoji:'🏀'},{text:'ダンク',reading:'だんく',emoji:'💥'},
+{text:'スリーポイント',reading:'すりーぽいんと',emoji:'3️⃣'},{text:'フリースロー',reading:'ふりーすろー',emoji:'🏀'},
+{text:'リバウンド',reading:'りばうんど',emoji:'↩'},{text:'スティール',reading:'すてぃーる',emoji:'✂'},
+{text:'ブロック',reading:'ぶろっく',emoji:'🚫'},{text:'アシスト',reading:'あしすと',emoji:'🤝'},
+{text:'ターンオーバー',reading:'たーんおーばー',emoji:'😓'},{text:'ファウル',reading:'ふぁうる',emoji:'✋'},
+{text:'トラベリング',reading:'とらべりんぐ',emoji:'🚶'},{text:'ダブルドリブル',reading:'だぶるどりぶる',emoji:'🚫'},
+{text:'バイオレーション',reading:'ばいおれーしょん',emoji:'⚠'},{text:'マンツーマン',reading:'まんつーまん',emoji:'👤'},
+{text:'ゾーンディフェンス',reading:'ぞーんでぃふぇんす',emoji:'🛡'},{text:'ピックアンドロール',reading:'ぴっくあんどろーる',emoji:'🔄'},
+{text:'スクリーン',reading:'すくりーん',emoji:'🧱'},{text:'カットイン',reading:'かっといん',emoji:'✂'},
+{text:'速攻',reading:'そっこう',emoji:'⚡'},{text:'合わせ',reading:'あわせ',emoji:'🤝'},
+{text:'ポジション',reading:'ぽじしょん',emoji:'📍'},{text:'センター',reading:'せんたー',emoji:'🏀'},
+{text:'フォワード',reading:'ふぉわーど',emoji:'🏃'},{text:'ガード',reading:'がーど',emoji:'🛡'},
+{text:'ポイントガード',reading:'ぽいんとがーど',emoji:'🎮'},{text:'シューティングガード',reading:'しゅーてぃんぐがーど',emoji:'🎯'},
+{text:'スモールフォワード',reading:'すもーるふぉわーど',emoji:'🏃'},{text:'パワーフォワード',reading:'ぱわーふぉわーど',emoji:'💪'},
+{text:'ビッグマン',reading:'びっぐまん',emoji:'🏋'},{text:'司令塔',reading:'しれいとう',emoji:'🧠'},
+{text:'得点王',reading:'とくてんおう',emoji:'👑'},{text:'MVP',reading:'えむぶいぴー',emoji:'🏆'},
+{text:'スターター',reading:'すたーたー',emoji:'⭐'},{text:'ベンチ',reading:'べんち',emoji:'🪑'},
+{text:'控え選手',reading:'ひかえせんしゅ',emoji:'👤'},{text:'戦術',reading:'せんじゅつ',emoji:'🧠'},
+{text:'タイムアウト',reading:'たいむあうと',emoji:'⏸'},{text:'延長戦',reading:'えんちょうせん',emoji:'➕'},
+{text:'ハーフタイム',reading:'はーふたいむ',emoji:'🔄'},{text:'クォーター',reading:'くぉーたー',emoji:'🔢'},
+{text:'スコア',reading:'すこあ',emoji:'📊'},{text:'得点差',reading:'とくてんさ',emoji:'±'},
+{text:'逆転',reading:'ぎゃくてん',emoji:'🔄'},{text:'作戦',reading:'さくせん',emoji:'📋'},
+{text:'プレスディフェンス',reading:'ぷれすでぃふぇんす',emoji:'🤜'},{text:'遅攻',reading:'ちこう',emoji:'🐢'},
+{text:'速い展開',reading:'はやいてんかい',emoji:'⚡'},{text:'オフサイド',reading:'おふさいど',emoji:'🚫'}
+],
+上級:[
+{text:'アイソレーション',reading:'あいそれーしょん',emoji:'👤'},
+{text:'ファストブレーク',reading:'ふぁすとぶれーく',emoji:'⚡'},
+{text:'ハーフコートオフェンス',reading:'はーふこーとおふぇんす',emoji:'🎯'},
+{text:'トランジション',reading:'とらんじしょん',emoji:'🔄'},
+{text:'クロスオーバー',reading:'くろすおーばー',emoji:'✂'},
+{text:'ユーロステップ',reading:'ゆーろすてっぷ',emoji:'🕺'},
+{text:'スピンムーブ',reading:'すぴんむーぶ',emoji:'🌀'},
+{text:'フェイダウェイ',reading:'ふぇいだうぇい',emoji:'↗'},
+{text:'バンクシュート',reading:'ばんくしゅーと',emoji:'🔴'},
+{text:'フローター',reading:'ふろーたー',emoji:'🌊'},
+{text:'ポストアップ',reading:'ぽすとあっぷ',emoji:'📮'},
+{text:'ローポスト',reading:'ろーぽすと',emoji:'📍'},
+{text:'ハイポスト',reading:'はいぽすと',emoji:'📍'},
+{text:'ミドルレンジ',reading:'みどるれんじ',emoji:'📏'},
+{text:'コーナースリー',reading:'こーなーすりー',emoji:'3️⃣'},
+{text:'キャッチアンドシュート',reading:'きゃっちあんどしゅーと',emoji:'🎯'},
+{text:'プルアップジャンパー',reading:'ぷるあっぷじゃんぱー',emoji:'🏀'},
+{text:'ステップバック',reading:'すてっぷばっく',emoji:'⬅'},
+{text:'ヘジテーション',reading:'へじてーしょん',emoji:'🤔'},
+{text:'ギャロップステップ',reading:'ぎゃろっぷすてっぷ',emoji:'🐎'},
+{text:'ダブルクラッチ',reading:'だぶるくらっち',emoji:'🔄'},
+{text:'フィンガーロール',reading:'ふぃんがーろーる',emoji:'☝'},
+{text:'アリウープ',reading:'ありうーぷ',emoji:'⬆'},
+{text:'ロブパス',reading:'ろぶぱす',emoji:'↗'},
+{text:'バウンドパス',reading:'ばうんどぱす',emoji:'↕'},
+{text:'ノールックパス',reading:'のーるっくぱす',emoji:'👁'},
+{text:'ビハインドザバック',reading:'びはいんどざばっく',emoji:'🔙'},
+{text:'アンダーハンドパス',reading:'あんだーはんどぱす',emoji:'🤲'},
+{text:'チェストパス',reading:'ちぇすとぱす',emoji:'👊'},
+{text:'オーバーヘッドパス',reading:'おーばーへっどぱす',emoji:'🙌'},
+{text:'ヘルプディフェンス',reading:'へるぷでぃふぇんす',emoji:'🛡'},
+{text:'ダブルチーム',reading:'だぶるちーむ',emoji:'👥'},
+{text:'トラップ',reading:'とらっぷ',emoji:'🪤'},
+{text:'ディナイ',reading:'でぃない',emoji:'🚫'},
+{text:'フロントカット',reading:'ふろんとかっと',emoji:'✂'},
+{text:'バックドアカット',reading:'ばっくどあかっと',emoji:'🚪'},
+{text:'Vカット',reading:'ぶいかっと',emoji:'✌'},
+{text:'Lカット',reading:'えるかっと',emoji:'📐'},
+{text:'フレックスオフェンス',reading:'ふれっくすおふぇんす',emoji:'💪'},
+{text:'モーションオフェンス',reading:'もーしょんおふぇんす',emoji:'🌊'},
+{text:'スプレッドオフェンス',reading:'すぷれっどおふぇんす',emoji:'📡'},
+{text:'オフェンスリバウンド',reading:'おふぇんすりばうんど',emoji:'↩'},
+{text:'ディフェンスリバウンド',reading:'でぃふぇんすりばうんど',emoji:'↩'},
+{text:'ボックスアウト',reading:'ぼっくすあうと',emoji:'📦'},
+{text:'エアボール',reading:'えあぼーる',emoji:'💨'},
+{text:'バズァービーター',reading:'ばずぁーびーたー',emoji:'⏰'},
+{text:'スポットアップ',reading:'すぽっとあっぷ',emoji:'⭐'},
+{text:'バックカット',reading:'ばっくかっと',emoji:'✂'},
+{text:'ギャップポジション',reading:'ぎゃっぷぽじしょん',emoji:'📐'},
+{text:'ボールウォッチ',reading:'ぼーるうぉっち',emoji:'👁'},
+{text:'オフボールムーブ',reading:'おふぼーるむーぶ',emoji:'🏃'}
+]
+},
+なまえ:{
+初級:[
+{text:'太郎',reading:'たろう',emoji:'👦'},{text:'花',reading:'はな',emoji:'👧'},
+{text:'健',reading:'けん',emoji:'👦'},{text:'ゆい',reading:'ゆい',emoji:'👧'},
+{text:'陸',reading:'りく',emoji:'👦'},{text:'空',reading:'そら',emoji:'👦'},
+{text:'美緒',reading:'みお',emoji:'👧'},{text:'翔',reading:'しょう',emoji:'👦'},
+{text:'葵',reading:'あおい',emoji:'👧'},{text:'湊',reading:'みなと',emoji:'👦'},
+{text:'陽',reading:'はる',emoji:'👦'},{text:'結',reading:'ゆい',emoji:'👧'},
+{text:'蓮',reading:'れん',emoji:'👦'},{text:'桜',reading:'さくら',emoji:'👧'},
+{text:'大',reading:'だい',emoji:'👦'},{text:'心',reading:'こころ',emoji:'👧'},
+{text:'光',reading:'ひかり',emoji:'👧'},{text:'星',reading:'ほし',emoji:'⭐'},
+{text:'月',reading:'つき',emoji:'🌙'},{text:'海',reading:'うみ',emoji:'🌊'},
+{text:'風',reading:'かぜ',emoji:'💨'},{text:'山',reading:'やま',emoji:'⛰'},
+{text:'川',reading:'かわ',emoji:'🌊'},{text:'森',reading:'もり',emoji:'🌳'},
+{text:'花子',reading:'はなこ',emoji:'👧'},{text:'次郎',reading:'じろう',emoji:'👦'},
+{text:'三郎',reading:'さぶろう',emoji:'👦'},{text:'愛',reading:'あい',emoji:'❤'},
+{text:'希',reading:'のぞみ',emoji:'🌟'},{text:'幸',reading:'さち',emoji:'🍀'},
+{text:'夢',reading:'ゆめ',emoji:'💭'},{text:'大輔',reading:'だいすけ',emoji:'👦'},
+{text:'真',reading:'まこと',emoji:'👦'},{text:'亮',reading:'りょう',emoji:'👦'},
+{text:'純',reading:'じゅん',emoji:'👤'},{text:'恵',reading:'めぐみ',emoji:'👧'},
+{text:'明',reading:'あきら',emoji:'👤'},{text:'秀',reading:'しゅう',emoji:'👦'},
+{text:'勇',reading:'いさむ',emoji:'👦'},{text:'仁',reading:'じん',emoji:'👦'},
+{text:'武',reading:'たける',emoji:'👦'},{text:'豊',reading:'ゆたか',emoji:'👦'},
+{text:'清',reading:'きよし',emoji:'👦'},{text:'望',reading:'のぞむ',emoji:'🌟'},
+{text:'誠',reading:'まこと',emoji:'👦'},{text:'栄',reading:'さかえ',emoji:'👤'},
+{text:'光',reading:'こう',emoji:'💡'},{text:'一',reading:'いち',emoji:'1️⃣'},
+{text:'二',reading:'に',emoji:'2️⃣'},{text:'三',reading:'さん',emoji:'3️⃣'}
+],
+中級:[
+{text:'勇気',reading:'ゆうき',emoji:'👦'},{text:'小春',reading:'こはる',emoji:'👧'},
+{text:'南',reading:'みなみ',emoji:'👧'},{text:'幸輝',reading:'こうき',emoji:'👦'},
+{text:'千咲',reading:'ちさき',emoji:'👧'},{text:'陽向',reading:'ひなた',emoji:'👦'},
+{text:'優斗',reading:'ゆうと',emoji:'👦'},{text:'美咲',reading:'みさき',emoji:'👧'},
+{text:'大和',reading:'やまと',emoji:'👦'},{text:'七海',reading:'ななみ',emoji:'👧'},
+{text:'翔太',reading:'しょうた',emoji:'👦'},{text:'楓',reading:'かえで',emoji:'👧'},
+{text:'奏',reading:'かなで',emoji:'👧'},{text:'颯',reading:'はやて',emoji:'👦'},
+{text:'柊',reading:'ひいらぎ',emoji:'👦'},{text:'朔',reading:'さく',emoji:'👦'},
+{text:'紬',reading:'つむぎ',emoji:'👧'},{text:'柚葉',reading:'ゆずは',emoji:'👧'},
+{text:'碧',reading:'あおい',emoji:'👤'},{text:'暖',reading:'はる',emoji:'👦'},
+{text:'琉',reading:'りゅう',emoji:'👦'},{text:'晴',reading:'はれ',emoji:'👤'},
+{text:'凪',reading:'なぎ',emoji:'👤'},{text:'芽衣',reading:'めい',emoji:'👧'},
+{text:'莉子',reading:'りこ',emoji:'👧'},{text:'彩花',reading:'あやか',emoji:'👧'},
+{text:'杏奈',reading:'あんな',emoji:'👧'},{text:'陸斗',reading:'りくと',emoji:'👦'},
+{text:'壮太',reading:'そうた',emoji:'👦'},{text:'蒼空',reading:'そら',emoji:'👦'},
+{text:'侑大',reading:'ゆうだい',emoji:'👦'},{text:'志恩',reading:'しおん',emoji:'👤'},
+{text:'琴音',reading:'ことね',emoji:'👧'},{text:'朱里',reading:'あかり',emoji:'👧'},
+{text:'萌',reading:'もえ',emoji:'👧'},{text:'千尋',reading:'ちひろ',emoji:'👤'},
+{text:'尚樹',reading:'なおき',emoji:'👦'},{text:'海斗',reading:'かいと',emoji:'👦'},
+{text:'航平',reading:'こうへい',emoji:'👦'},{text:'雅人',reading:'まさと',emoji:'👦'},
+{text:'俊介',reading:'しゅんすけ',emoji:'👦'},{text:'真央',reading:'まお',emoji:'👧'},
+{text:'里奈',reading:'りな',emoji:'👧'},{text:'沙耶',reading:'さや',emoji:'👧'},
+{text:'菜月',reading:'なつき',emoji:'👧'},{text:'茉莉',reading:'まり',emoji:'👧'},
+{text:'汐',reading:'しお',emoji:'👤'},{text:'実桜',reading:'みお',emoji:'👧'},
+{text:'湊大',reading:'みなと',emoji:'👦'},{text:'瑠',reading:'るい',emoji:'👤'}
+],
+上級:[
+{text:'蒼太郎',reading:'そうたろう',emoji:'👦'},
+{text:'春彦',reading:'はるひこ',emoji:'👦'},
+{text:'雅弘',reading:'まさひろ',emoji:'👦'},
+{text:'凛太郎',reading:'りんたろう',emoji:'👦'},
+{text:'光義',reading:'みつよし',emoji:'👦'},
+{text:'壮一郎',reading:'そういちろう',emoji:'👦'},
+{text:'龍之介',reading:'りゅうのすけ',emoji:'👦'},
+{text:'慎之介',reading:'しんのすけ',emoji:'👦'},
+{text:'賢太郎',reading:'けんたろう',emoji:'👦'},
+{text:'悠太郎',reading:'ゆうたろう',emoji:'👦'},
+{text:'航太郎',reading:'こうたろう',emoji:'👦'},
+{text:'誠一郎',reading:'せいいちろう',emoji:'👦'},
+{text:'勇一郎',reading:'ゆういちろう',emoji:'👦'},
+{text:'健太郎',reading:'けんたろう',emoji:'👦'},
+{text:'新一郎',reading:'しんいちろう',emoji:'👦'},
+{text:'将一郎',reading:'しょういちろう',emoji:'👦'},
+{text:'麻衣子',reading:'まいこ',emoji:'👧'},
+{text:'真由美',reading:'まゆみ',emoji:'👧'},
+{text:'奈々子',reading:'ななこ',emoji:'👧'},
+{text:'恵理子',reading:'えりこ',emoji:'👧'},
+{text:'香里奈',reading:'かりな',emoji:'👧'},
+{text:'明日香',reading:'あすか',emoji:'👧'},
+{text:'由紀子',reading:'ゆきこ',emoji:'👧'},
+{text:'智恵子',reading:'ちえこ',emoji:'👧'},
+{text:'美佐子',reading:'みさこ',emoji:'👧'},
+{text:'洋子',reading:'ようこ',emoji:'👧'},
+{text:'博之',reading:'ひろゆき',emoji:'👦'},
+{text:'和之',reading:'かずゆき',emoji:'👦'},
+{text:'浩之',reading:'ひろゆき',emoji:'👦'},
+{text:'昭之',reading:'あきゆき',emoji:'👦'},
+{text:'義之',reading:'よしゆき',emoji:'👦'},
+{text:'正之',reading:'まさゆき',emoji:'👦'},
+{text:'信之',reading:'のぶゆき',emoji:'👦'},
+{text:'隆之',reading:'たかゆき',emoji:'👦'},
+{text:'美智子',reading:'みちこ',emoji:'👧'},
+{text:'節子',reading:'せつこ',emoji:'👧'},
+{text:'寿子',reading:'としこ',emoji:'👧'},
+{text:'千代子',reading:'ちよこ',emoji:'👧'},
+{text:'文子',reading:'ふみこ',emoji:'👧'},
+{text:'芳子',reading:'よしこ',emoji:'👧'},
+{text:'照子',reading:'てるこ',emoji:'👧'},
+{text:'澄子',reading:'すみこ',emoji:'👧'},
+{text:'あきひろ',reading:'あきひろ',emoji:'👦'},
+{text:'ゆきひろ',reading:'ゆきひろ',emoji:'👦'},
+{text:'敬一郎',reading:'けいいちろう',emoji:'👦'},
+{text:'理一郎',reading:'りいちろう',emoji:'👦'},
+{text:'彰之',reading:'あきゆき',emoji:'👦'},
+{text:'憲之',reading:'のりゆき',emoji:'👦'},
+{text:'喜代子',reading:'きよこ',emoji:'👧'},
+{text:'房子',reading:'ふさこ',emoji:'👧'}
+]
+}
+};
+
+/* ======== 体型ステージ（等差数列3個ごと） ======== */
+const BODY_STAGES=[
+  {label:'スタート',    icon:'😊',sx:1.05,sy:1.00,muscle:0},   // 0: 0-2個
+  {label:'ちょっとスリム',icon:'🙂',sx:0.97,sy:0.99,muscle:0},  // 1: 3-5個
+  {label:'スリム',      icon:'😄',sx:0.89,sy:0.98,muscle:0},   // 2: 6-8個
+  {label:'かなりスリム', icon:'😎',sx:0.81,sy:0.97,muscle:0},   // 3: 9-11個
+  {label:'すっきり',    icon:'😏',sx:0.73,sy:0.96,muscle:0},   // 4: 12-14個
+  {label:'スマート',    icon:'🏃',sx:0.67,sy:0.95,muscle:0},   // 5: 15-17個
+  {label:'とてもスマート',icon:'🧘',sx:0.62,sy:0.94,muscle:0}, // 6: 18-20個
+  {label:'ほっそり',    icon:'✨',sx:0.58,sy:0.93,muscle:0},   // 7: 21-23個
+  {label:'モデル級',    icon:'⭐',sx:0.55,sy:0.92,muscle:0},   // 8: 24-26個
+  {label:'超スリム',    icon:'💫',sx:0.53,sy:0.91,muscle:0},   // 9: 27-29個
+  {label:'筋肉つき始め', icon:'💪',sx:0.58,sy:0.92,muscle:0.3},// 10: 30-32個
+  {label:'マッチョ',    icon:'🦾',sx:0.65,sy:0.91,muscle:0.6},// 11: 33-35個
+  {label:'かなりマッチョ',icon:'🏋',sx:0.74,sy:0.90,muscle:0.85},// 12: 36-38個
+  {label:'ムキムキ',    icon:'🔥',sx:0.83,sy:0.89,muscle:1.0},// 13: 39-41個
+  {label:'超ムキムキ！', icon:'👑',sx:0.90,sy:0.88,muscle:1.0},// 14: 42+個
+];
+const STAGE_INTERVAL=3;
+function getStageIdx(eaten){return Math.min(Math.floor(eaten/STAGE_INTERVAL),BODY_STAGES.length-1);}
+
+/* ======== フリックキー配列 ======== */
+const FLICK={
+  a:{c:'あ',l:'い',u:'う',r:'え',d:'お'},
+  ka:{c:'か',l:'き',u:'く',r:'け',d:'こ'},
+  sa:{c:'さ',l:'し',u:'す',r:'せ',d:'そ'},
+  ta:{c:'た',l:'ち',u:'つ',r:'て',d:'と'},
+  na:{c:'な',l:'に',u:'ぬ',r:'ね',d:'の'},
+  ha:{c:'は',l:'ひ',u:'ふ',r:'へ',d:'ほ'},
+  ma:{c:'ま',l:'み',u:'む',r:'め',d:'も'},
+  ya:{c:'や',u:'ゆ',d:'よ'},
+  ra:{c:'ら',l:'り',u:'る',r:'れ',d:'ろ'},
+  wa:{c:'わ',l:'を',u:'ん',r:'ー'}
+};
+const DAKUTEN={か:'が',き:'ぎ',く:'ぐ',け:'げ',こ:'ご',さ:'ざ',し:'じ',す:'ず',せ:'ぜ',そ:'ぞ',た:'だ',ち:'ぢ',つ:'づ',て:'で',と:'ど',は:'ば',ひ:'び',ふ:'ぶ',へ:'べ',ほ:'ぼ',う:'ゔ'};
+const DAKU_REV={};Object.keys(DAKUTEN).forEach(k=>DAKU_REV[DAKUTEN[k]]=k);
+const HANDAKU={は:'ぱ',ひ:'ぴ',ふ:'ぷ',へ:'ぺ',ほ:'ぽ'};
+const HANDAKU_REV={};Object.keys(HANDAKU).forEach(k=>HANDAKU_REV[HANDAKU[k]]=k);
+const SMALL={あ:'ぁ',い:'ぃ',う:'ぅ',え:'ぇ',お:'ぉ',つ:'っ',や:'ゃ',ゆ:'ゅ',よ:'ょ',わ:'ゎ'};
+const SMALL_REV={};Object.keys(SMALL).forEach(k=>SMALL_REV[SMALL[k]]=k);
+
+/* ======== SE ======== */
+class SFX{
+  constructor(){this.ctx=null;}
+  init(){if(!this.ctx){try{this.ctx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume();}
+  tone(freq,dur,type='sine',vol=.3,delay=0){if(!this.ctx)return;const t=this.ctx.currentTime+delay;const osc=this.ctx.createOscillator();const g=this.ctx.createGain();osc.type=type;osc.frequency.setValueAtTime(freq,t);g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);osc.connect(g).connect(this.ctx.destination);osc.start(t);osc.stop(t+dur);}
+  type(){this.tone(700+Math.random()*300,.04,'square',.12);}
+  chomp(){if(!this.ctx)return;const t=this.ctx.currentTime;const bs=this.ctx.sampleRate*.12;const buf=this.ctx.createBuffer(1,bs,this.ctx.sampleRate);const d=buf.getChannelData(0);for(let i=0;i<bs;i++)d[i]=(Math.random()*2-1)*(1-i/bs)*.6;const src=this.ctx.createBufferSource();src.buffer=buf;const f=this.ctx.createBiquadFilter();f.type='lowpass';f.frequency.value=1200;const g=this.ctx.createGain();g.gain.value=.5;src.connect(f).connect(g).connect(this.ctx.destination);src.start(t);this.tone(90,.13,'sine',.4);}
+  clear(){[523,659,784,1047].forEach((f,i)=>this.tone(f,.22,'triangle',.32,i*.06));}
+  fanfare(){[523,659,784,1047,1319,1568].forEach((f,i)=>this.tone(f,.3,'triangle',.35,i*.08));this.tone(261,.6,'sine',.2,0);}
+  miss(){this.tone(240,.25,'sawtooth',.28);this.tone(160,.35,'sawtooth',.28,.12);}
+  gameover(){[440,415,392,349].forEach((f,i)=>this.tone(f,.4,'triangle',.3,i*.18));}
+  levelup(){[523,659,784,1047,1319].forEach((f,i)=>this.tone(f,.16,'triangle',.38,i*.045));}
+}
+const sfx=new SFX();
+
+/* ======== ゲーム状態 ======== */
+const G={theme:'やさい',level:'初級',device:'iphone',words:[],wordIdx:0,current:null,typed:'',timeLeft:20,timerId:null,lives:2,score:0,eaten:0,combo:0,maxCombo:0,bodyStage:0,goalCount:10,playing:false,pendingRecord:null};
+
+/* ======== ユーティリティ ======== */
+const $=id=>document.getElementById(id);
+function show(id){['title-screen','game-screen','gameover-screen','name-input-screen','ranking-screen'].forEach(s=>$(s).classList.add('hidden'));$(id).classList.remove('hidden');}
+function escapeHTML(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function onTap(el,fn){let f=false;const w=e=>{if(f)return;f=true;setTimeout(()=>f=false,350);fn(e);};el.addEventListener('pointerup',w);el.addEventListener('click',w);}
+
+/* ======== タイトル設定 ======== */
+try{const d=localStorage.getItem('yasai-device');if(d){G.device=d;document.querySelectorAll('#device-select .opt-btn').forEach(b=>b.classList.toggle('active',b.dataset.device===d));}}catch(e){}
+document.querySelectorAll('#device-select .opt-btn').forEach(b=>onTap(b,()=>{document.querySelectorAll('#device-select .opt-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');G.device=b.dataset.device;try{localStorage.setItem('yasai-device',G.device);}catch(e){};}));
+document.querySelectorAll('#theme-select .opt-btn').forEach(b=>onTap(b,()=>{document.querySelectorAll('#theme-select .opt-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');G.theme=b.dataset.theme;}));
+document.querySelectorAll('#level-select .opt-btn').forEach(b=>onTap(b,()=>{document.querySelectorAll('#level-select .opt-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');G.level=b.dataset.level;}));
+onTap($('start-btn'),()=>{sfx.init();startGame();});
+onTap($('home-btn'),()=>{stopTimer();show('title-screen');});
+onTap($('retry-btn'),startGame);
+onTap($('totitle-btn'),()=>show('title-screen'));
+
+/* ======== ランキング ======== */
+const REC_KEY='yasai-slim-v3';
+let currentFilter='all';
+function loadRecords(){try{return JSON.parse(localStorage.getItem(REC_KEY)||'[]');}catch(e){return[];}}
+function saveRecords(r){try{localStorage.setItem(REC_KEY,JSON.stringify(r));return true;}catch(e){return false;}}
+function addRecord(rec){const r=loadRecords();r.push(rec);r.sort((a,b)=>b.score-a.score);if(r.length>30)r.length=30;return saveRecords(r);}
+function fmtDate(iso){try{const d=new Date(iso);return`${d.getMonth()+1}/${d.getDate()}`;}catch(e){return'';}}
+function showRanking(hi){currentFilter='all';document.querySelectorAll('.rank-tab').forEach(t=>t.classList.toggle('active',t.dataset.filter==='all'));renderRanking(hi);show('ranking-screen');}
+function renderRanking(hi){
+  const all=loadRecords();
+  const recs=currentFilter==='all'?all:all.filter(r=>r.theme===currentFilter);
+  const el=$('ranking-list');
+  if(!recs.length){el.innerHTML='<div class="empty-rank">まだ きろくがないよ！<br>あそんで きろくを のこそう 🥕</div>';return;}
+  const m=['🥇','🥈','🥉'];
+  el.innerHTML=recs.slice(0,20).map((r,i)=>{
+    const medal=m[i]||`<span>${i+1}</span>`;
+    const h=r.id===hi?' highlight':'';
+    return`<div class="rank-row${h}"><div class="rank-medal">${medal}</div><div class="rank-name-block"><div class="rank-name">${escapeHTML(r.name||'ゲスト')}</div><div class="rank-meta">${escapeHTML(r.theme)}・${escapeHTML(r.level)}　${fmtDate(r.date)}</div></div><div class="rank-score">${r.score}<span class="unit">pt</span></div></div>`;
+  }).join('');
+  if(hi){setTimeout(()=>{const e=el.querySelector('.highlight');if(e)e.scrollIntoView({behavior:'smooth',block:'center'});},200);}
+}
+document.querySelectorAll('.rank-tab').forEach(t=>onTap(t,()=>{document.querySelectorAll('.rank-tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');currentFilter=t.dataset.filter;renderRanking();}));
+function goToNameInput(){G.pendingRecord={theme:G.theme,level:G.level,score:G.score,eaten:G.eaten,combo:G.maxCombo,date:new Date().toISOString()};$('ni-eaten').textContent=G.eaten;$('ni-score').textContent=G.score;$('ni-meta').textContent=`${G.theme}・${G.level}`;$('name-input').value='';show('name-input-screen');setTimeout(()=>{try{$('name-input').focus();}catch(e){}},300);}
+function saveAndRanking(){let n=($('name-input').value||'').trim();if(!n)n='ゲスト';if(n.length>8)n=n.slice(0,8);const id=Date.now()+'-'+Math.random().toString(36).slice(2,7);addRecord({...G.pendingRecord,name:n,id});showRanking(id);}
+onTap($('ranking-btn'),()=>{sfx.init();showRanking();});
+onTap($('save-record-nav-btn'),goToNameInput);
+onTap($('save-record-btn'),saveAndRanking);
+onTap($('skip-record-btn'),()=>show('title-screen'));
+onTap($('ranking-back-btn'),()=>show('title-screen'));
+$('name-input').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();saveAndRanking();}});
+
+/* ======== キーボード切替 ======== */
+function switchKeyboard(device){$('keyboard-iphone').classList.toggle('hidden',device!=='iphone');$('keyboard-android').classList.toggle('hidden',device==='iphone');}
+
+/* ======== ゲーム開始 ======== */
+function startGame(){
+  const pool=WORDS[G.theme][G.level].slice();
+  G.words=shuffle(pool);G.wordIdx=0;G.lives=2;G.score=0;G.eaten=0;G.combo=0;G.maxCombo=0;G.bodyStage=0;G.playing=true;
+  const ch=$('character');
+  ch.style.transform='scale(1.05,1)';ch.classList.remove('happy','body-change');
+  ch.querySelector('.muscle-arms').style.opacity='0';
+  ch.querySelector('.eyes-cool').style.opacity='0';
+  ch.querySelector('.eyes-open').style.opacity='1';
+  ch.querySelector('.mouth-cool').style.opacity='0';
+  ch.querySelector('.mouth-smile').style.opacity='1';
+  renderLives();renderScore();updateBodyGauge(0,false);
+  switchKeyboard(G.device);nextWord();show('game-screen');
+}
+
+/* ======== 次のお題 ======== */
+function nextWord(){
+  if(G.wordIdx>=G.words.length){G.words=shuffle(G.words);G.wordIdx=0;}
+  G.current=G.words[G.wordIdx++];G.typed='';G.timeLeft=20;
+  $('word-emoji').textContent=G.current.emoji;
+  $('word-display').innerHTML='<ruby>'+escapeHTML(G.current.text)+'<rt>'+escapeHTML(G.current.reading)+'</rt></ruby>';
+  renderTyped();startTimer();
+}
+function renderTyped(){
+  const tgt=G.current.reading;
+  $('typed-display').innerHTML=Array.from(tgt).map((ch,i)=>{
+    const t=G.typed[i];
+    if(t===undefined)return`<span class="typed-char">・</span>`;
+    if(t===ch)return`<span class="typed-char filled">${t}</span>`;
+    return`<span class="typed-char wrong">${t}</span>`;
+  }).join('');
+}
+function renderLives(){const el=$('lives');el.innerHTML='';for(let i=0;i<2;i++){const h=document.createElement('div');h.className='heart'+(i>=G.lives?' lost':'');el.appendChild(h);}}
+function renderScore(){$('score').textContent=G.score;}
+
+/* ======== 体型ゲージ ======== */
+function updateBodyGauge(eaten,stageUp){
+  const idx=getStageIdx(eaten);
+  const s=BODY_STAGES[idx];
+  const prog=(eaten%STAGE_INTERVAL)/STAGE_INTERVAL*100;
+  const fill=$('body-gauge-fill');
+  fill.style.width=Math.min(prog,100)+'%';
+  fill.classList.toggle('muscle',idx>=10);
+  $('gauge-icon').textContent=s.icon;
+  $('stage-badge').textContent=s.label;
+  $('gauge-count').textContent=eaten+'こ';
+  if(stageUp&&eaten>0){
+    $('stage-badge').animate([{transform:'scale(1)',background:'var(--cream)'},{transform:'scale(1.5)',background:'#FFD93D'},{transform:'scale(1)',background:'var(--cream)'}],{duration:500});
+  }
+}
+
+/* ======== キャラクター体型変化 ======== */
+function applyBodyStage(idx,withPop){
+  const s=BODY_STAGES[Math.min(idx,BODY_STAGES.length-1)];
+  const ch=$('character');
+  ch.style.transform=`scale(${s.sx},${s.sy})`;
+  ch.querySelector('.muscle-arms').style.opacity=s.muscle;
+  const isMuscle=idx>=10;
+  ch.querySelector('.eyes-cool').style.opacity=isMuscle?'1':'0';
+  ch.querySelector('.eyes-open').style.opacity=isMuscle?'0':'1';
+  ch.querySelector('.mouth-cool').style.opacity=isMuscle?'1':'0';
+  ch.querySelector('.mouth-smile').style.opacity=isMuscle?'0':'1';
+  if(withPop){
+    ch.classList.remove('body-change');void ch.offsetWidth;ch.classList.add('body-change');
+    setTimeout(()=>ch.classList.remove('body-change'),900);
+    sfx.levelup();
+    popText(isMuscle?'筋肉ついた！💪':s.label+'！');
+  }
+}
+
+/* ======== タイマー ======== */
+function startTimer(){stopTimer();const st=performance.now();const dur=20000;G.timerId=setInterval(()=>{const el=performance.now()-st;G.timeLeft=Math.max(0,(dur-el)/1000);$('timer-fill').style.width=(G.timeLeft/20*100)+'%';if(G.timeLeft<=0){stopTimer();handleMiss(true);}},50);}
+function stopTimer(){if(G.timerId){clearInterval(G.timerId);G.timerId=null;}}
+
+/* ======== 入力処理 ======== */
+function inputKana(kana){
+  if(!G.playing)return;
+  const tgt=G.current.reading,idx=G.typed.length;
+  const canMod=k=>DAKUTEN[k]||HANDAKU[k]||SMALL[k];
+  if(kana!==tgt[idx]&&!canMod(kana)){sfx.miss();$('typed-display').animate([{transform:'translateX(0)'},{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'translateX(0)'}],{duration:250});return;}
+  sfx.type();G.typed+=kana;renderTyped();checkAnswer();
+}
+function applyModifier(kind){
+  if(!G.playing||!G.typed.length)return;
+  const last=G.typed[G.typed.length-1],rest=G.typed.slice(0,-1);let neu=last;
+  if(kind==='cycle'){const base=DAKU_REV[last]||HANDAKU_REV[last]||SMALL_REV[last]||last;const cy=[base];if(DAKUTEN[base])cy.push(DAKUTEN[base]);if(HANDAKU[base])cy.push(HANDAKU[base]);if(SMALL[base])cy.push(SMALL[base]);if(cy.length===1)return;neu=cy[(cy.indexOf(last)+1)%cy.length];}
+  else if(kind==='dakuten'){if(DAKUTEN[last])neu=DAKUTEN[last];else if(DAKU_REV[last])neu=DAKU_REV[last];}
+  else if(kind==='handakuten'){if(HANDAKU[last])neu=HANDAKU[last];else if(HANDAKU_REV[last])neu=HANDAKU_REV[last];}
+  else if(kind==='small'){if(SMALL[last])neu=SMALL[last];else if(SMALL_REV[last])neu=SMALL_REV[last];}
+  else if(kind==='bar'){if(G.typed.length<20){sfx.type();G.typed+='ー';renderTyped();checkAnswer();}return;}
+  if(neu!==last){sfx.type();G.typed=rest+neu;renderTyped();checkAnswer();}
+}
+function backspace(){if(!G.playing||!G.typed.length)return;G.typed=G.typed.slice(0,-1);sfx.type();renderTyped();}
+function clearInput(){if(!G.playing)return;G.typed='';renderTyped();}
+function checkAnswer(){if(G.typed===G.current.reading){stopTimer();handleClear();}}
+
+/* ======== クリア処理 ======== */
+function handleClear(){
+  G.playing=false;G.eaten++;G.combo++;G.maxCombo=Math.max(G.maxCombo,G.combo);
+  const gain=Math.floor((100+Math.floor(G.timeLeft*10))*(1+Math.min(G.combo-1,9)*.2));
+  G.score+=gain;renderScore();
+  const newStage=getStageIdx(G.eaten);
+  const stageUp=newStage>G.bodyStage;
+  G.bodyStage=newStage;
+  updateBodyGauge(G.eaten,stageUp);
+  const veg=$('veggie-fly');veg.textContent=G.current.emoji;veg.classList.remove('launch');void veg.offsetWidth;veg.classList.add('launch');
+  const ch=$('character');
+  setTimeout(()=>{ch.classList.add('chomp','happy');sfx.chomp();},320);
+  setTimeout(()=>{
+    ch.classList.remove('chomp');
+    if(stageUp)applyBodyStage(newStage,true);
+    flashScreen();
+    if(!stageUp)popText(G.combo>=5?'GREAT!':G.combo>=3?'NICE!':'GOOD!');
+    confettiBurst();sfx.clear();
+  },560);
+  setTimeout(()=>{ch.classList.remove('happy');if(G.eaten>=G.goalCount){showResult(true);}else{G.playing=true;nextWord();}},1400);
+}
+
+/* ======== ミス処理 ======== */
+function handleMiss(timeout){
+  G.playing=false;G.lives--;G.combo=0;renderLives();sfx.miss();
+  $('game-screen').animate([{transform:'translateX(0)'},{transform:'translateX(-8px)'},{transform:'translateX(8px)'},{transform:'translateX(0)'}],{duration:300});
+  if(timeout)popText('じかんぎれ！');
+  setTimeout(()=>{if(G.lives<=0){showResult(false);}else{G.playing=true;nextWord();}},900);
+}
+
+/* ======== エフェクト ======== */
+function flashScreen(){const f=$('fx-flash');f.classList.remove('active');void f.offsetWidth;f.classList.add('active');}
+function popText(txt){const p=document.createElement('div');p.className='fx-text pop';p.textContent=txt;document.body.appendChild(p);setTimeout(()=>p.remove(),1000);}
+function confettiBurst(){const cols=['#FF6B6B','#FFD93D','#7AC74F','#4D96FF','#FF8C42','#B983FF'];for(let i=0;i<28;i++){const c=document.createElement('div');c.className='confetti';c.style.background=cols[i%cols.length];c.style.left=(Math.random()*100)+'vw';c.style.top='-20px';document.body.appendChild(c);const dx=(Math.random()-.5)*200,dy=window.innerHeight*.7+Math.random()*200;c.animate([{transform:'translate(0,0) rotate(0)',opacity:1},{transform:`translate(${dx}px,${dy}px) rotate(${720+Math.random()*360}deg)`,opacity:0}],{duration:1200+Math.random()*400,easing:'cubic-bezier(.3,.7,.5,1)'});setTimeout(()=>c.remove(),1700);}}
+
+/* ======== 結果画面 ======== */
+function showResult(win){
+  stopTimer();G.playing=false;
+  $('gameover-title').textContent=win?'クリア！ 🎉':'ゲームオーバー';
+  $('stat-eaten').textContent=G.eaten+'こ';
+  $('stat-score').textContent=G.score;
+  $('stat-combo').textContent=G.maxCombo;
+  const s=BODY_STAGES[Math.min(G.bodyStage,BODY_STAGES.length-1)];
+  $('stat-stage').textContent=s.icon+' '+s.label;
+  const goSvg=$('gameover-char');
+  goSvg.innerHTML=$('character').innerHTML;
+  goSvg.setAttribute('viewBox','-130 -160 260 320');
+  goSvg.style.transform=`scale(${s.sx},${s.sy})`;
+  goSvg.style.transformOrigin='center 78%';
+  if(win){const eo=goSvg.querySelector('.eyes-open');if(eo)eo.style.opacity='0';const eh=goSvg.querySelector('.eyes-happy');if(eh)eh.style.opacity='1';}
+  show('gameover-screen');
+  if(win)sfx.fanfare();else sfx.gameover();
+}
+
+/* ======== フリック入力 ======== */
+const popup=$('flick-popup');
+let currentTouch=null;
+function getDir(dx,dy){const dist=Math.hypot(dx,dy);if(dist<25)return'c';const a=Math.atan2(dy,dx)*180/Math.PI;if(a>-45&&a<=45)return'r';if(a>45&&a<=135)return'd';if(a>-135&&a<=-45)return'u';return'l';}
+function showPopup(btn,map){const rect=btn.getBoundingClientRect();popup.innerHTML=`<div class="flick-cell u ${map.u?'':'empty'}" data-dir="u">${map.u||''}</div><div class="flick-cell l ${map.l?'':'empty'}" data-dir="l">${map.l||''}</div><div class="flick-cell c" data-dir="c">${map.c||''}</div><div class="flick-cell r ${map.r?'':'empty'}" data-dir="r">${map.r||''}</div><div class="flick-cell d ${map.d?'':'empty'}" data-dir="d">${map.d||''}</div>`;popup.style.left=(rect.left+rect.width/2)+'px';popup.style.top=(rect.top-70)+'px';popup.classList.add('active');}
+function updPopup(dir){popup.querySelectorAll('.flick-cell').forEach(c=>c.classList.toggle('highlight',c.dataset.dir===dir&&!c.classList.contains('empty')));}
+function hidePopup(){popup.classList.remove('active');}
+
+function attachFlick(btn){
+  const key=btn.dataset.flick;const map=FLICK[key];if(!map)return;
+  const isAndroid=()=>G.device==='android';
+  const start=(x,y)=>{sfx.init();currentTouch={x,y,btn,map,st:Date.now()};btn.classList.add('pressed');showPopup(btn,map);updPopup('c');};
+  const move=(x,y)=>{if(!currentTouch||currentTouch.btn!==btn)return;updPopup(getDir(x-currentTouch.x,y-currentTouch.y));};
+  const end=(x,y)=>{
+    if(!currentTouch||currentTouch.btn!==btn)return;
+    const dt=Date.now()-currentTouch.st;
+    const dir=getDir(x-currentTouch.x,y-currentTouch.y);
+    const kana=map[dir]||map.c;
+    if(dir==='c'&&dt>280&&isAndroid()){
+      const hint=$('speed-hint');if(hint){hint.textContent='⚡フリックで速く！タップは遅いよ';setTimeout(()=>{if(hint)hint.textContent='⚡フリックで速く入力できます';},2200);}
+    }
+    if(kana)inputKana(kana);
+    hidePopup();btn.classList.remove('pressed');currentTouch=null;
+  };
+  btn.addEventListener('touchstart',e=>{e.preventDefault();const t=e.touches[0];start(t.clientX,t.clientY);},{passive:false});
+  btn.addEventListener('touchmove',e=>{e.preventDefault();const t=e.touches[0];move(t.clientX,t.clientY);},{passive:false});
+  btn.addEventListener('touchend',e=>{e.preventDefault();const t=e.changedTouches[0];end(t.clientX,t.clientY);},{passive:false});
+  btn.addEventListener('touchcancel',()=>{hidePopup();btn.classList.remove('pressed');currentTouch=null;});
+  btn.addEventListener('mousedown',e=>{e.preventDefault();start(e.clientX,e.clientY);});
+  document.addEventListener('mousemove',e=>{if(currentTouch&&currentTouch.btn===btn)move(e.clientX,e.clientY);});
+  document.addEventListener('mouseup',e=>{if(currentTouch&&currentTouch.btn===btn)end(e.clientX,e.clientY);});
+}
+
+document.querySelectorAll('#keyboard-iphone .key[data-flick]').forEach(attachFlick);
+document.querySelectorAll('#keyboard-android .key-android[data-flick]').forEach(attachFlick);
+
+document.querySelectorAll('.key[data-mod],.key-android[data-mod],.android-tool-btn[data-mod]').forEach(btn=>{
+  const mod=btn.dataset.mod;
+  const press=e=>{e.preventDefault();sfx.init();btn.classList.add('pressed');if(mod==='back')backspace();else if(mod==='clear')clearInput();else if(mod==='bar')applyModifier('bar');else if(mod==='cycle')applyModifier('cycle');};
+  const rel=()=>btn.classList.remove('pressed');
+  btn.addEventListener('touchstart',press,{passive:false});
+  btn.addEventListener('touchend',e=>{e.preventDefault();rel();},{passive:false});
+  btn.addEventListener('mousedown',press);btn.addEventListener('mouseup',rel);btn.addEventListener('mouseleave',rel);
+});
+
+document.addEventListener('touchmove',e=>{if(e.touches.length>1)e.preventDefault();},{passive:false});
+show('title-screen');
+</script>
+</body>
+</html>
